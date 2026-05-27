@@ -425,7 +425,7 @@ class World(_GraphManager):
     self._reasoning_props = {}
     self._entities        = weakref.WeakValueDictionary()
     self._namespaces      = weakref.WeakValueDictionary()
-    self._rdflib_store    = None
+    self._ox_graph        = None
     self.graph            = None
     
     if not owl_world is None:
@@ -443,6 +443,13 @@ class World(_GraphManager):
         self.graph = Graph(filename, world = self, clone = self.graph, **kargs)
       else:
         self.graph = Graph(filename, world = self, **kargs)
+    elif backend == "oxigraph":
+      from owlready2.tripleoxigraph import OxigraphGraph, _OXIGRAPH_AVAILABLE
+      if not _OXIGRAPH_AVAILABLE:
+        raise ImportError("pyoxigraph is required for the oxigraph backend. Install with: pip install pyoxigraph")
+      if self.graph and len(self.graph):
+        raise ValueError("Cannot switch to oxigraph backend with existing triples (cloning not supported)")
+      self.graph = OxigraphGraph(filename, world = self)
     else:
       raise ValueError("Unsupported backend type '%s'!" % backend)
     for method in self.graph.__class__.BASE_METHODS + self.graph.__class__.WORLD_METHODS:
@@ -491,12 +498,24 @@ class World(_GraphManager):
       self.graph.save(file, format, **kargs)
       
   def as_rdflib_graph(self):
-    if self._rdflib_store is None:
-      import owlready2.rdflib_store
-      self._rdflib_store = owlready2.rdflib_store.TripleLiteRDFlibStore(self)
-    return self._rdflib_store.main_graph
+    if self._ox_graph is None:
+      import owlready2.pyoxigraph_store
+      self._ox_graph = owlready2.pyoxigraph_store.OxigraphGraph(self)
+    return self._ox_graph
 
-  def sparql_query(self, sparql, *args, **kargs):
+  def sparql_query(self, sparql, params=None, *args, **kargs):
+    # Handle ??1, ??2, … parameter substitution (owlready2 convention).
+    # params is a list whose i-th element replaces ??{i+1} in the query.
+    if params:
+      import re as _re
+      def _sub(m):
+        idx = int(m.group(1)) - 1
+        if idx < 0 or idx >= len(params):
+          return m.group(0)
+        p = params[idx]
+        iri = p.iri if hasattr(p, "iri") else str(p)
+        return "<%s>" % iri
+      sparql = _re.sub(r'\?\?(\d+)', _sub, sparql)
     yield from self.as_rdflib_graph().query_owlready(sparql, *args, **kargs)
     
       
@@ -698,7 +717,7 @@ class Ontology(Namespace, _GraphManager):
         self._add_obj_triple_spo(self.storid, rdf_type, owl_ontology)
         if self.world.graph: self.world.graph.release_write_lock()
         
-    if not self.world._rdflib_store is None: self.world._rdflib_store._add_onto(self)
+    pass  # pyoxigraph_store builds the store fresh on each query; no sync needed
     
   def destroy(self):
     self.world.graph.acquire_write_lock()

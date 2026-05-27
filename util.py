@@ -148,10 +148,14 @@ class _LazyListMixin(list):
     self.populate()
     return str(self)
     
+  def __contains__(self, x):
+    self.populate()
+    return list.__contains__(self, x)
+
   def __iter__(self):
     self.populate()
     return iter(self)
-  
+
   def __len__(self):
     self.populate()
     return len(self)

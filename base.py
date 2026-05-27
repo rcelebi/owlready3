@@ -155,8 +155,13 @@ def _parse_date(s):
   return r
 
 def _parse_datetime(s):
+  # rdflib may already have converted the literal to datetime; accept it as-is
+  if isinstance(s, datetime.datetime):
+    return s
+  # Accept both T-separated (strict ISO 8601) and space-separated (Python default str())
+  normalized = s.replace(" ", "T", 1) if "T" not in s and " " in s else s
   for format in ["%Y-%m-%dT%H:%M:%S", "%Y-%m-%dT%H:%M:%S%z", "%Y-%m-%dT%H:%M:%S.%f", "%Y-%m-%dT%H:%M:%S.%f%z"]:
-    try:    return datetime.datetime.strptime(s, format)
+    try:    return datetime.datetime.strptime(normalized, format)
     except: pass
   raise ValueError("Cannot parse ISO datetime '%s'!" % s)
 

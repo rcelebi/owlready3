@@ -7,6 +7,8 @@ try:
 except:
   pass
 
+import pyoxigraph as _ox
+
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 import owlready2, owlready2.util
@@ -5347,34 +5349,36 @@ multiple lines with " and ’ and \ and & and < and > and é."""
     n = world.get_ontology("http://www.semanticweb.org/jiba/ontologies/2017/0/test").load()
     g = world.as_rdflib_graph()
     
-    assert (list(g.objects(rdflib.URIRef("http://www.semanticweb.org/jiba/ontologies/2017/0/test#ma_pizza"),
-                           rdflib.URIRef("http://www.semanticweb.org/jiba/ontologies/2017/0/test#price")))[0].toPython()
-            == 9.9)
-    
-    assert (set(g.objects(rdflib.URIRef("http://www.semanticweb.org/jiba/ontologies/2017/0/test#ma_pizza"),
-                          rdflib.URIRef("http://www.w3.org/1999/02/22-rdf-syntax-ns#type")))
-            == { rdflib.URIRef("http://www.semanticweb.org/jiba/ontologies/2017/0/test#Pizza"),
-                 rdflib.URIRef("http://www.w3.org/2002/07/owl#NamedIndividual"),
+    price_lit = list(g.objects(
+      _ox.NamedNode("http://www.semanticweb.org/jiba/ontologies/2017/0/test#ma_pizza"),
+      _ox.NamedNode("http://www.semanticweb.org/jiba/ontologies/2017/0/test#price")))[0]
+    assert float(price_lit.value) == 9.9
+
+    assert (set(g.objects(
+                  _ox.NamedNode("http://www.semanticweb.org/jiba/ontologies/2017/0/test#ma_pizza"),
+                  _ox.NamedNode("http://www.w3.org/1999/02/22-rdf-syntax-ns#type")))
+            == { _ox.NamedNode("http://www.semanticweb.org/jiba/ontologies/2017/0/test#Pizza"),
+                 _ox.NamedNode("http://www.w3.org/2002/07/owl#NamedIndividual"),
             })
-    
+
     tomato = n.Tomato()
-    
+
     nb = len(world.graph)
-    
+
     g.store.context_graphs[n].add(
-      (rdflib.URIRef("http://www.semanticweb.org/jiba/ontologies/2017/0/test#ma_pizza"),
-       rdflib.URIRef("http://www.semanticweb.org/jiba/ontologies/2017/0/test#has_topping"),
-       rdflib.URIRef(tomato.iri),
+      (_ox.NamedNode("http://www.semanticweb.org/jiba/ontologies/2017/0/test#ma_pizza"),
+       _ox.NamedNode("http://www.semanticweb.org/jiba/ontologies/2017/0/test#has_topping"),
+       _ox.NamedNode(tomato.iri),
     ))
-    
+
     assert len(world.graph) == nb + 1
-    
+
     g.store.context_graphs[n].remove(
-      (rdflib.URIRef("http://www.semanticweb.org/jiba/ontologies/2017/0/test#ma_pizza"),
-       rdflib.URIRef("http://www.semanticweb.org/jiba/ontologies/2017/0/test#has_topping"),
+      (_ox.NamedNode("http://www.semanticweb.org/jiba/ontologies/2017/0/test#ma_pizza"),
+       _ox.NamedNode("http://www.semanticweb.org/jiba/ontologies/2017/0/test#has_topping"),
        None,
     ))
-    
+
     assert len(world.graph) == nb - 2
     
   def test_rdflib_2(self):
@@ -5387,8 +5391,8 @@ multiple lines with " and ’ and \ and & and < and > and é."""
     }
     """)
     
-    assert list(r)[0][0].toPython() == 9.9
-    
+    assert float(list(r)[0][0].value) == 9.9
+
   def test_rdflib_3(self):
     world = self.new_world()
     n = world.get_ontology("http://www.semanticweb.org/test.owl")
@@ -5459,7 +5463,7 @@ multiple lines with " and ’ and \ and & and < and > and é."""
     PREFIX P: <http://www.semanticweb.org/test.owl#>
     PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
     SELECT ?s WHERE {
-    ?s P:p "true".
+    ?s P:p "true"^^xsd:boolean.
     }
     """))
     assert set(l[0] for l in r) == { o2, o3 }
@@ -5493,7 +5497,7 @@ multiple lines with " and ’ and \ and & and < and > and é."""
       n._add_data_triple_spod(o1.storid, p.storid, "3", 0)
       
     g = world.as_rdflib_graph()
-    s = set(g.triples((rdflib.URIRef(o1.iri), None, None)))
+    s = set(g.triples((_ox.NamedNode(o1.iri), None, None)))
     assert len(s) == 5
     
   def test_rdflib_6(self):
@@ -5512,7 +5516,7 @@ multiple lines with " and ’ and \ and & and < and > and é."""
     <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>
     ?b .
     }""")
-    assert list(r) == [(rdflib.URIRef("http://www.w3.org/2002/07/owl#Class"),)]
+    assert list(r) == [(_ox.NamedNode("http://www.w3.org/2002/07/owl#Class"),)]
     
   def test_rdflib_7(self):
     world = self.new_world()
@@ -5526,20 +5530,20 @@ multiple lines with " and ’ and \ and & and < and > and é."""
       
     g = world.as_rdflib_graph()
     
-    r = set(g.triples((rdflib.URIRef(o2.iri), rdflib.URIRef(p.iri), None)))
-    assert r == set([(rdflib.URIRef(o2.iri), rdflib.URIRef(p.iri), rdflib.URIRef(o1.iri))])
-    r = set(g.triples((rdflib.URIRef(o2.iri), rdflib.URIRef(p.iri), rdflib.URIRef(o1.iri))))
-    assert r == set([(rdflib.URIRef(o2.iri), rdflib.URIRef(p.iri), rdflib.URIRef(o1.iri))])
-    
-    r = set(g.triples((rdflib.URIRef(o1.iri), rdflib.URIRef(i.iri), None)))
-    assert r == set([(rdflib.URIRef(o1.iri), rdflib.URIRef(i.iri), rdflib.URIRef(o2.iri))])
-    r = set(g.triples((rdflib.URIRef(o1.iri), rdflib.URIRef(i.iri), rdflib.URIRef(o2.iri))))
-    assert r == set([(rdflib.URIRef(o1.iri), rdflib.URIRef(i.iri), rdflib.URIRef(o2.iri))])
-    
-    r = set(g.triples((rdflib.URIRef(o1.iri), None, None)))
-    assert r > set([(rdflib.URIRef(o1.iri), rdflib.URIRef(i.iri), rdflib.URIRef(o2.iri))])
-    r = set(g.triples((rdflib.URIRef(o1.iri), None, rdflib.URIRef(o2.iri))))
-    assert r == set([(rdflib.URIRef(o1.iri), rdflib.URIRef(i.iri), rdflib.URIRef(o2.iri))])
+    r = set(g.triples((_ox.NamedNode(o2.iri), _ox.NamedNode(p.iri), None)))
+    assert r == set([(_ox.NamedNode(o2.iri), _ox.NamedNode(p.iri), _ox.NamedNode(o1.iri))])
+    r = set(g.triples((_ox.NamedNode(o2.iri), _ox.NamedNode(p.iri), _ox.NamedNode(o1.iri))))
+    assert r == set([(_ox.NamedNode(o2.iri), _ox.NamedNode(p.iri), _ox.NamedNode(o1.iri))])
+
+    r = set(g.triples((_ox.NamedNode(o1.iri), _ox.NamedNode(i.iri), None)))
+    assert r == set([(_ox.NamedNode(o1.iri), _ox.NamedNode(i.iri), _ox.NamedNode(o2.iri))])
+    r = set(g.triples((_ox.NamedNode(o1.iri), _ox.NamedNode(i.iri), _ox.NamedNode(o2.iri))))
+    assert r == set([(_ox.NamedNode(o1.iri), _ox.NamedNode(i.iri), _ox.NamedNode(o2.iri))])
+
+    r = set(g.triples((_ox.NamedNode(o1.iri), None, None)))
+    assert r > set([(_ox.NamedNode(o1.iri), _ox.NamedNode(i.iri), _ox.NamedNode(o2.iri))])
+    r = set(g.triples((_ox.NamedNode(o1.iri), None, _ox.NamedNode(o2.iri))))
+    assert r == set([(_ox.NamedNode(o1.iri), _ox.NamedNode(i.iri), _ox.NamedNode(o2.iri))])
     
   def test_rdflib_8(self):
     world = self.new_world()
@@ -5555,8 +5559,8 @@ multiple lines with " and ’ and \ and & and < and > and é."""
       <http://www.w3.org/2002/07/owl#Class> .
       } WHERE {}""")
 
-    assert g.get_context(o) is g.get_context(rdflib.URIRef("http://www.semanticweb.org/onto.owl"))
-    assert g.get_context(o) is g.get_context(rdflib.URIRef("http://www.semanticweb.org/onto.owl#"))
+    assert g.get_context(o) is g.get_context("http://www.semanticweb.org/onto.owl")
+    assert g.get_context(o) is g.get_context("http://www.semanticweb.org/onto.owl#")
     
     g2 = g.get_context(o)
     r = g2.update("""
@@ -5698,7 +5702,7 @@ SELECT ?label WHERE {
     
     result = list(graph.query(query))
     assert len(result) == 1
-    assert str(result[0][0]) == "XYZ"
+    assert result[0][0].value == "XYZ"
     
   def test_rdflib_12(self):
     world = self.new_world()

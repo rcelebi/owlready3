@@ -111,6 +111,12 @@ del owlready2
 
 from owlready2.rule            import *
 
+import owlready2.manchester
+from owlready2.manchester import (to_manchester, manchester_render_ontology,
+                                  parse_manchester_expression,
+                                  parse_manchester_ontology,
+                                  instances_of, classes_matching)
+
 LOADING.__exit__()
 
 # Not real property
