@@ -17,10 +17,8 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import sys, os, types, tempfile, subprocess, weakref, re, urllib.request, warnings, itertools
-from io import StringIO
-from collections import defaultdict, OrderedDict
-from xml.sax.saxutils import escape
+import sys, os, weakref, re, itertools
+from collections import defaultdict
 import datetime
 
 from owlready2.util import *

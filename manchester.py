@@ -18,8 +18,6 @@ Query helpers:
 """
 
 import re
-import io
-import types as _pytypes
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Well-known prefix tables
