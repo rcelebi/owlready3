@@ -27,7 +27,7 @@ remove(), or _update()), so the next query rebuilds it from the current
 triplelite state.
 
 Public surface kept intentionally identical to the old rdflib-based one so
-that existing callers of world.as_rdflib_graph() / world.sparql_query() keep
+that existing callers of world.as_sparql_graph() / world.sparql_query() keep
 working without changes.
 """
 
@@ -322,7 +322,7 @@ class OxigraphGraph:
     """
     Drop-in replacement for TripleLiteRDFlibGraph.
 
-    Provides the same interface that callers of world.as_rdflib_graph() expect:
+    Provides the same interface that callers of world.as_sparql_graph() expect:
       g.bind(prefix, namespace)
       g.query_owlready(sparql)
       g.update(sparql)

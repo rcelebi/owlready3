@@ -5347,7 +5347,7 @@ multiple lines with " and ’ and \ and & and < and > and é."""
   def test_rdflib_1(self):
     world = self.new_world()
     n = world.get_ontology("http://www.semanticweb.org/jiba/ontologies/2017/0/test").load()
-    g = world.as_rdflib_graph()
+    g = world.as_sparql_graph()
     
     price_lit = list(g.objects(
       _ox.NamedNode("http://www.semanticweb.org/jiba/ontologies/2017/0/test#ma_pizza"),
@@ -5384,7 +5384,7 @@ multiple lines with " and ’ and \ and & and < and > and é."""
   def test_rdflib_2(self):
     world = self.new_world()
     n = world.get_ontology("http://www.semanticweb.org/jiba/ontologies/2017/0/test").load()
-    g = world.as_rdflib_graph()
+    g = world.as_sparql_graph()
     
     r = g.query("""SELECT ?p WHERE {
     <http://www.semanticweb.org/jiba/ontologies/2017/0/test#ma_pizza> <http://www.semanticweb.org/jiba/ontologies/2017/0/test#price> ?p .
@@ -5402,7 +5402,7 @@ multiple lines with " and ’ and \ and & and < and > and é."""
       o = O("o")
       o.p = ["D"]
       
-    g = world.as_rdflib_graph()
+    g = world.as_sparql_graph()
     
     r = g.query_owlready("""
     PREFIX P: <http://www.semanticweb.org/test.owl#>
@@ -5439,7 +5439,7 @@ multiple lines with " and ’ and \ and & and < and > and é."""
       o2 = O(p = True , i = 1)
       o3 = O(p = True , i = 2)
       
-    g = world.as_rdflib_graph()
+    g = world.as_sparql_graph()
     
     r = list(g.query_owlready("""
     PREFIX P: <http://www.semanticweb.org/test.owl#>
@@ -5496,7 +5496,7 @@ multiple lines with " and ’ and \ and & and < and > and é."""
       o1 = O(p = ["1", "2"])
       n._add_data_triple_spod(o1.storid, p.storid, "3", 0)
       
-    g = world.as_rdflib_graph()
+    g = world.as_sparql_graph()
     s = set(g.triples((_ox.NamedNode(o1.iri), None, None)))
     assert len(s) == 5
     
@@ -5507,7 +5507,7 @@ multiple lines with " and ’ and \ and & and < and > and é."""
       class O(Thing): pass
       class p(Thing >> str): pass
 
-    g = world.as_rdflib_graph()
+    g = world.as_sparql_graph()
     g.bind("ex", "http://www.semanticweb.org/test.owl#")
     
     r = g.query("""
@@ -5528,7 +5528,7 @@ multiple lines with " and ’ and \ and & and < and > and é."""
       o1 = O()
       o2 = O(p = [o1])
       
-    g = world.as_rdflib_graph()
+    g = world.as_sparql_graph()
     
     r = set(g.triples((_ox.NamedNode(o2.iri), _ox.NamedNode(p.iri), None)))
     assert r == set([(_ox.NamedNode(o2.iri), _ox.NamedNode(p.iri), _ox.NamedNode(o1.iri))])
@@ -5548,7 +5548,7 @@ multiple lines with " and ’ and \ and & and < and > and é."""
   def test_rdflib_8(self):
     world = self.new_world()
     o = world.get_ontology("http://www.semanticweb.org/onto.owl")
-    g = world.as_rdflib_graph()
+    g = world.as_sparql_graph()
     g.bind("onto", "http://www.semanticweb.org/onto.owl#")
 
     with o:
@@ -5576,7 +5576,7 @@ multiple lines with " and ’ and \ and & and < and > and é."""
   def test_rdflib_9(self):
     world = self.new_world()
     o = world.get_ontology("http://www.semanticweb.org/jiba/ontologies/2017/0/test").load()
-    g = world.as_rdflib_graph()
+    g = world.as_sparql_graph()
     g.bind("onto", "http://www.semanticweb.org/jiba/ontologies/2017/0/test#")
 
     with o:
@@ -5592,7 +5592,7 @@ multiple lines with " and ’ and \ and & and < and > and é."""
   def test_rdflib_10(self):
     world = self.new_world()
     o = world.get_ontology("http://www.semanticweb.org/jiba/ontologies/2017/0/test").load()
-    g = world.as_rdflib_graph()
+    g = world.as_sparql_graph()
     g.bind("onto", "http://www.semanticweb.org/jiba/ontologies/2017/0/test#")
 
     r = g.update("""
@@ -5607,7 +5607,7 @@ multiple lines with " and ’ and \ and & and < and > and é."""
   def test_rdflib_11(self):
     world = self.new_world()
     o = world.get_ontology("http://www.semanticweb.org/jiba/ontologies/2017/0/test").load()
-    g = world.as_rdflib_graph()
+    g = world.as_sparql_graph()
     g.bind("onto", "http://www.semanticweb.org/jiba/ontologies/2017/0/test#")
     
     p2 = o.Pizza("ma_pizza2")
@@ -5687,7 +5687,7 @@ multiple lines with " and ’ and \ and & and < and > and é."""
       c2 = C(p = [c1])
       comment[c2, p, c1] = ["XYZ"]
       
-    graph = world.as_rdflib_graph()
+    graph = world.as_sparql_graph()
     
     graph.bind("owl", "http://www.w3.org/2002/07/owl#")
     graph.bind("rdfs", "http://www.w3.org/2000/01/rdf-schema#")
@@ -5714,7 +5714,7 @@ SELECT ?label WHERE {
       c2 = C(p = [c1])
       comment[c2, p, c1] = ["XYZ"]
       
-    graph = world.as_rdflib_graph()
+    graph = world.as_sparql_graph()
     
     graph.bind("owl", "http://www.w3.org/2002/07/owl#")
     graph.bind("rdfs", "http://www.w3.org/2000/01/rdf-schema#")
@@ -5740,7 +5740,7 @@ WHERE {
     world = self.new_world()
     onto1 = world.get_ontology("http://test.org/onto1.owl")
 
-    graph = world.as_rdflib_graph()
+    graph = world.as_sparql_graph()
     assert not graph.get_context(onto1) is None
     
     onto2 = world.get_ontology("http://test.org/onto2.owl")

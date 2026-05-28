@@ -497,11 +497,14 @@ class World(_GraphManager):
       if _LOG_LEVEL: print("* Owlready2 * Saving world %s to %s..." % (self, getattr(file, "name", "???")), file = sys.stderr)
       self.graph.save(file, format, **kargs)
       
-  def as_rdflib_graph(self):
+  def as_sparql_graph(self):
     if self._ox_graph is None:
       import owlready2.pyoxigraph_store
       self._ox_graph = owlready2.pyoxigraph_store.OxigraphGraph(self)
     return self._ox_graph
+
+  # Backwards-compatibility alias
+  as_rdflib_graph = as_sparql_graph
 
   def sparql_query(self, sparql, params=None, *args, **kargs):
     # Handle ??1, ??2, … parameter substitution (owlready2 convention).
@@ -516,7 +519,7 @@ class World(_GraphManager):
         iri = p.iri if hasattr(p, "iri") else str(p)
         return "<%s>" % iri
       sparql = _re.sub(r'\?\?(\d+)', _sub, sparql)
-    yield from self.as_rdflib_graph().query_owlready(sparql, *args, **kargs)
+    yield from self.as_sparql_graph().query_owlready(sparql, *args, **kargs)
     
       
   def get_ontology(self, base_iri):

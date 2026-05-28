@@ -96,7 +96,7 @@ pyoxigraph-backed graph object for performing SPARQL queries:
 
 ::
 
-   >>> graph = default_world.as_rdflib_graph()
+   >>> graph = default_world.as_sparql_graph()
 
 The returned object is an ``OxigraphGraph`` backed by
 `pyoxigraph <https://pyoxigraph.readthedocs.io/>`_, a fast Rust-based SPARQL
