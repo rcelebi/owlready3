@@ -44,6 +44,7 @@ Table of content
    annotations.rst
    namespace.rst
    world.rst
+   manchester.rst
    rule.rst
    pymedtermino2.rst
    porting1.rst

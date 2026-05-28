@@ -88,41 +88,63 @@ Finally, the reasoner can be executed on a specific World:
    >>> sync_reasoner(my_world)
 
 
-Working with RDFlib for performing SPARQL queries
--------------------------------------------------
+Performing SPARQL queries with pyoxigraph
+-----------------------------------------
 
-Owlready2 uses an optimized RDF quadstore. This quadstore can also be accessed
-as an RDFlib graph as follows:
+Owlready2 uses an optimized RDF quadstore. This quadstore can be accessed as a
+pyoxigraph-backed graph object for performing SPARQL queries:
 
 ::
 
    >>> graph = default_world.as_rdflib_graph()
 
+The returned object is an ``OxigraphGraph`` backed by
+`pyoxigraph <https://pyoxigraph.readthedocs.io/>`_, a fast Rust-based SPARQL
+engine. The store is built from the quadstore on the first query and cached
+automatically; subsequent queries reuse the cached store without rebuilding it.
+The cache is invalidated whenever a triple is added or removed.
 
-In particular, the RDFlib graph can be used for performing SPARQL queries:
+Performing a SPARQL query (returns raw pyoxigraph terms):
 
 ::
 
    >>> r = list(graph.query("""SELECT ?p WHERE {
-     <http://www.semanticweb.org/jiba/ontologies/2017/0/test#ma_pizza> <http://www.semanticweb.org/jiba/ontologies/2017/0/test#price> ?p .
-   }"""))
+   ...   <http://www.semanticweb.org/jiba/ontologies/2017/0/test#ma_pizza>
+   ...   <http://www.semanticweb.org/jiba/ontologies/2017/0/test#price> ?p .
+   ... }"""))
 
-
-
-
-The results can be automatically converted to Python and Owlready using the .query_owlready() method instead of .query():
+The results can be automatically converted to Python/Owlready2 objects using
+``.query_owlready()`` instead of ``.query()``:
 
 ::
 
    >>> r = list(graph.query_owlready("""SELECT ?p WHERE {
-     <http://www.semanticweb.org/jiba/ontologies/2017/0/test#ma_pizza> <http://www.semanticweb.org/jiba/ontologies/2017/0/test#price> ?p .
-   }"""))
+   ...   <http://www.semanticweb.org/jiba/ontologies/2017/0/test#ma_pizza>
+   ...   <http://www.semanticweb.org/jiba/ontologies/2017/0/test#price> ?p .
+   ... }"""))
 
-
-Owlready blank nodes can be created with the graph.BNode() method:
+Namespace prefixes can be bound so they are available in queries:
 
 ::
 
-   >>> bn = graph.BNode()
-   >>> with onto:
-   ...     graph.add((bn, rdflib.URIRef("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"), rdflib.URIRef("http://www.w3.org/2002/07/owl#Class"))) 
+   >>> graph.bind("test", "http://www.semanticweb.org/jiba/ontologies/2017/0/test#")
+   >>> r = list(graph.query_owlready("SELECT ?p WHERE { test:ma_pizza test:price ?p . }"))
+
+SPARQL UPDATE queries are also supported and automatically synced back to the
+quadstore:
+
+::
+
+   >>> graph.update("""INSERT DATA {
+   ...   <http://example.org/s> <http://example.org/p> <http://example.org/o> .
+   ... }""")
+
+Triples can be added or removed directly using pyoxigraph terms:
+
+::
+
+   >>> import pyoxigraph
+   >>> ctx = graph.get_context(onto)
+   >>> ctx.add((pyoxigraph.NamedNode("http://example.org/s"),
+   ...          pyoxigraph.NamedNode("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
+   ...          pyoxigraph.NamedNode("http://www.w3.org/2002/07/owl#Class"))) 
