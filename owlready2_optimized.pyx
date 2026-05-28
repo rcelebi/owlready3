@@ -398,7 +398,7 @@ def parse_rdfxml(object f, list objs, list datas, object insert_objs, object ins
           if not isinstance(o, int): o = rebuild_bn(o)
           objs.append((o, p, bn))
         elif i[0] == "COL":
-          drop, p, *l = i
+          drop = i[0]; p = i[1]; l = list(i[2:])
           l = [(isinstance(x, int) and x) or rebuild_bn(x) for x in l]
           objs.append((bn, p, new_list(l, objs, _abbreviate, new_blank)))
         else:
@@ -814,7 +814,7 @@ def parse_owlxml(object f, list objs, list datas, object insert_objs, object ins
       
     elif (tag == "http://www.w3.org/2002/07/owl#DatatypeRestriction"):
       start               = _rindex(stack)
-      datatype, *list_bns = stack[start + 1 : ]
+      _tmp = stack[start + 1:]; datatype = _tmp[0]; list_bns = list(_tmp[1:])
       list_bns            = new_list(list_bns, objs, _abbreviate, new_blank)
       bn                  = new_blank()
       stack[start :]  = [bn]

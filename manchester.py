@@ -1249,34 +1249,153 @@ def parse_manchester_ontology(source, ontology):
 # 2d: Query helpers
 # ─────────────────────────────────────────────────────────────────────────────
 
-def instances_of(cls, direct=False):
+def _eval_expr(expr, ind):
+    """Return True if individual *ind* satisfies class expression *expr*.
+
+    Handles all owlready2 class constructs including Restriction fillers that
+    are plain Python types (float, int, str) representing XSD datatypes —
+    which the built-in _satisfied_by() does not support.
+    """
+    from owlready2.class_construct import (
+        And, Or, Not, Restriction, OneOf, ConstrainedDatatype,
+        SOME, ONLY, VALUE, HAS_SELF, MIN, MAX, EXACTLY,
+    )
+
+    # Named OWL class
+    if isinstance(expr, type):
+        # ThingClass has _satisfied_by; plain Python types do not.
+        if hasattr(expr, '_satisfied_by'):
+            return expr._satisfied_by(ind)
+        return isinstance(ind, expr)   # plain Python type (shouldn't appear at top level)
+
+    if isinstance(expr, And):
+        return all(_eval_expr(c, ind) for c in expr.Classes)
+
+    if isinstance(expr, Or):
+        return any(_eval_expr(c, ind) for c in expr.Classes)
+
+    if isinstance(expr, Not):
+        return not _eval_expr(expr.Class, ind)
+
+    if isinstance(expr, OneOf):
+        return ind in expr.instances
+
+    if isinstance(expr, Restriction):
+        prop = expr.property
+        val  = expr.value
+
+        if expr.type == VALUE:
+            return val in prop[ind]
+
+        if expr.type == HAS_SELF:
+            return ind in prop[ind]
+
+        raw_vals = list(prop[ind])
+
+        def _filler_matches(obj):
+            if isinstance(val, ConstrainedDatatype):
+                return _eval_constrained(val, obj)
+            # Plain Python type used as XSD datatype filler (e.g. float, int, str)
+            if isinstance(val, type) and not hasattr(val, '_satisfied_by'):
+                return isinstance(obj, val)
+            return _eval_expr(val, obj)
+
+        if expr.type == SOME:
+            return any(_filler_matches(o) for o in raw_vals)
+
+        if expr.type == ONLY:
+            return all(_filler_matches(o) for o in raw_vals)
+
+        count = sum(1 for o in raw_vals if _filler_matches(o))
+        if   expr.type == MIN:    return count >= expr.cardinality
+        elif expr.type == MAX:    return count <= expr.cardinality
+        elif expr.type == EXACTLY: return count == expr.cardinality
+
+    # Fallback for unknown constructs
+    if hasattr(expr, '_satisfied_by'):
+        try:
+            return expr._satisfied_by(ind)
+        except (AttributeError, TypeError):
+            return False
+
+    return False
+
+
+def _eval_constrained(dtype, val):
+    """Return True if *val* satisfies all facets of a ConstrainedDatatype."""
+    from owlready2.class_construct import _PY_FACETS
+    if not isinstance(val, dtype.base_datatype):
+        return False
+    for facet in _PY_FACETS:
+        fval = getattr(dtype, facet, None)
+        if fval is None:
+            continue
+        if facet == 'min_inclusive' and not (val >= fval): return False
+        if facet == 'max_inclusive' and not (val <= fval): return False
+        if facet == 'min_exclusive' and not (val >  fval): return False
+        if facet == 'max_exclusive' and not (val <  fval): return False
+        if facet == 'min_length'    and not (len(val) >= fval): return False
+        if facet == 'max_length'    and not (len(val) <= fval): return False
+        if facet == 'length'        and not (len(val) == fval): return False
+        if facet == 'pattern':
+            import re as _re
+            if not _re.fullmatch(fval, str(val)): return False
+    return True
+
+
+def instances_of(cls, direct=False, ontology=None):
     """Return all individuals that are instances of *cls*.
+
+    *cls* may be a named OWL class or an anonymous class expression
+    (And, Or, Restriction, …) produced by parse_manchester_expression().
+    For anonymous expressions an *ontology* must be supplied so the world
+    can be determined.
 
     Parameters
     ----------
-    cls    : owlready2 OWL class
-    direct : if False (default) also include instances of subclasses
+    cls      : owlready2 OWL class or class expression
+    direct   : if False (default) also include instances of subclasses
+    ontology : required when *cls* is an anonymous expression
 
     Returns
     -------
     list
     """
-    world  = cls.namespace.world
-    result = []
-    seen   = set()
+    # Resolve the world from either the class or the supplied ontology.
+    if hasattr(cls, 'namespace'):
+        world = cls.namespace.world
+    elif ontology is not None:
+        world = ontology.world
+    else:
+        raise ValueError(
+            "instances_of: cannot determine world from an anonymous expression "
+            "without an explicit ontology= argument"
+        )
 
-    def _collect(c):
-        for ind in world.search(type=c):
-            k = id(ind)
-            if k not in seen:
-                seen.add(k)
-                result.append(ind)
-        if not direct:
-            for sub in c.subclasses():
-                _collect(sub)
+    # Named class: fast path using world.search(type=…)
+    # Use isinstance(cls, type) to distinguish ThingClass instances (real OWL
+    # classes) from anonymous constructs (And, Or, Restriction…) which also
+    # happen to have a subclasses() method.
+    if isinstance(cls, type):
+        result = []
+        seen   = set()
 
-    _collect(cls)
-    return result
+        def _collect(c):
+            for ind in world.search(type=c):
+                k = id(ind)
+                if k not in seen:
+                    seen.add(k)
+                    result.append(ind)
+            if not direct:
+                for sub in c.subclasses():
+                    _collect(sub)
+
+        _collect(cls)
+        return result
+
+    # Anonymous expression: use our evaluator which handles all construct types
+    # including Restriction fillers that are plain Python types (xsd datatypes).
+    return [ind for ind in world.individuals() if _eval_expr(cls, ind)]
 
 
 def classes_matching(expr_str, ontology):

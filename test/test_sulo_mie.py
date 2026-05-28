@@ -565,6 +565,53 @@ class TestInstancesOf(unittest.TestCase):
 
 
 # ════════════════════════════════════════════════════════════════════════════
+# 11b. instances_of with anonymous DL expressions (post-reasoning)
+# ════════════════════════════════════════════════════════════════════════════
+
+class TestInstancesOfDLQuery(unittest.TestCase):
+    """DL query tests: anonymous class expressions via parse_manchester_expression."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.w    = _new_world()
+        cls.onto = cls.w.get_ontology(f'file://{MIE05}').load()
+        with cls.onto:
+            sync_reasoner_pellet(cls.onto, infer_property_values=True)
+
+    def _q(self, expr_str):
+        expr = parse_manchester_expression(expr_str, self.onto)
+        return {i.name for i in instances_of(expr, ontology=self.onto)}
+
+    def test_hypertensive_reading_dl_query(self):
+        """BPMeasurement and (hasValue some xsd:integer[>= 140]) → 2 readings."""
+        hits = self._q('mie:BPMeasurement and (sulo:hasValue some xsd:integer[>= 140])')
+        self.assertIn('mary_bp_reading2_feb18', hits)
+        self.assertIn('mary_bp_reading3_feb18', hits)
+        self.assertNotIn('mary_bp_reading1_feb18', hits)
+
+    def test_confirmed_diagnosis_dl_query(self):
+        """DiagnosisStatement and (hasFeature value confirmed_status) → mar01 only."""
+        hits = self._q('mie:DiagnosisStatement and (sulo:hasFeature value mie:confirmed_status)')
+        self.assertIn('mary_dx_statement_mar01', hits)
+        self.assertNotIn('mary_dx_statement_feb22', hits)
+
+    def test_intermediate_or_high_grade_tumour_dl_query(self):
+        """Tissue and (hasFeature some (TumourGrade2 or TumourGrade3))."""
+        hits = self._q('mie:Tissue and (sulo:hasFeature some (mie:TumourGrade2 or mie:TumourGrade3))')
+        self.assertIn('mary_tissue_feb25', hits)
+
+    def test_hormone_receptor_positive_dl_query(self):
+        """Tissue and (hasFeature some ERPositive)."""
+        hits = self._q('mie:Tissue and (sulo:hasFeature some mie:ERPositive)')
+        self.assertIn('mary_tissue_feb25', hits)
+
+    def test_localised_breast_tumour_dl_query(self):
+        """Tumour and (isIn some Breast)."""
+        hits = self._q('mie:Tumour and (sulo:isIn some mie:Breast)')
+        self.assertIn('mary_tumour_left_breast', hits)
+
+
+# ════════════════════════════════════════════════════════════════════════════
 # 12. SPARQL with ??N parameter substitution
 # ════════════════════════════════════════════════════════════════════════════
 
