@@ -343,6 +343,9 @@ class OxigraphGraph:
         # Prevents WeakValueDictionary in _entities_cache from evicting live
         # query results between iterations, eliminating repeated SQLite loads.
         self._entity_cache: dict = {}
+        # True when the backend is tripleoxigraph: triples live in named graphs,
+        # so we need use_default_graph_as_union on every store.query() call.
+        self._use_graph_union: bool = False
 
     # ── namespace binding ─────────────────────────────────────────────────────
 
@@ -360,12 +363,24 @@ class OxigraphGraph:
     def _get_cached_store(self):
         """Return the cached full-world pyoxigraph.Store, building it if dirty."""
         if self._ox_store is None:
-            self._ox_store = _build_ox_store(self._world)
+            backend = self._world.graph
+            if hasattr(backend, '_store'):          # tripleoxigraph backend
+                self._ox_store = backend._store     # reuse directly — always current
+                self._use_graph_union = True        # triples live in named graphs
+            else:
+                self._ox_store = _build_ox_store(self._world)
         return self._ox_store
 
     def _invalidate_cache(self):
-        """Mark the store cache dirty so it is rebuilt on the next query."""
-        self._ox_store = None
+        """Mark the store cache dirty so it is rebuilt on the next query.
+
+        With the tripleoxigraph backend the pyoxigraph store IS the source of
+        truth — writes go there directly, so there is nothing to rebuild.  We
+        only clear _ox_store for the triplelite (SQLite) backend where the store
+        is a separate in-memory copy that drifts from SQLite on every write.
+        """
+        if not hasattr(self._world.graph, '_store'):    # triplelite path only
+            self._ox_store = None
         self._entity_cache.clear()
 
     # ── context access ────────────────────────────────────────────────────────
@@ -399,7 +414,8 @@ class OxigraphGraph:
         """Execute SPARQL SELECT/ASK; return list of translated rows (not a generator)."""
         ox_store = (self._get_cached_store() if onto_filter is None
                     else _build_ox_store(self._world, onto_filter))
-        result = ox_store.query(_inject_prefixes(self._prefixes, query))
+        full_q = _inject_prefixes(self._prefixes, query)
+        result = ox_store.query(full_q, use_default_graph_as_union=self._use_graph_union)
 
         if isinstance(result, _ox.QueryBoolean):
             return [[bool(result)]]
