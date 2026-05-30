@@ -78,6 +78,10 @@ def _inject_prefixes(prefixes, query):
     lines = "\n".join(f"PREFIX {p}: <{ns}>" for p, ns in prefixes.items())
     return lines + "\n" + query
 
+# Maximum number of IRI→entity entries kept in _entity_cache between invalidations.
+# When exceeded the cache is cleared before the next batch of conversions.
+_ENTITY_CACHE_MAX = 50_000
+
 
 # ── term converters: triplelite ↔ pyoxigraph ─────────────────────────────────
 
@@ -336,12 +340,11 @@ class OxigraphGraph:
     def __init__(self, world):
         self._world        = world
         self._prefixes     = {}
-        self._contexts     = {}   # onto → OxigraphContextGraph
+        self._prefix_block: str = ""   # cached "PREFIX p: <ns>\n…" header; rebuilt in bind()
+        self._contexts     = {}
         self._store_proxy  = _OxigraphStoreProxy(self)
-        self._ox_store     = None  # cached pyoxigraph.Store; None = dirty
-        # Strong-reference cache: IRI string → owlready2 entity.
-        # Prevents WeakValueDictionary in _entities_cache from evicting live
-        # query results between iterations, eliminating repeated SQLite loads.
+        self._ox_store     = None      # cached pyoxigraph.Store; None = dirty
+        # IRI string → owlready2 entity; strong-ref prevents WeakValueDict eviction.
         self._entity_cache: dict = {}
         # True when the backend is tripleoxigraph: triples live in named graphs,
         # so we need use_default_graph_as_union on every store.query() call.
@@ -351,6 +354,9 @@ class OxigraphGraph:
 
     def bind(self, prefix, namespace):
         self._prefixes[prefix] = str(namespace)
+        self._prefix_block = (
+            "\n".join(f"PREFIX {p}: <{ns}>" for p, ns in self._prefixes.items()) + "\n"
+        )
 
     # ── store property ────────────────────────────────────────────────────────
 
@@ -410,23 +416,35 @@ class OxigraphGraph:
 
     # ── internal SPARQL helpers ───────────────────────────────────────────────
 
-    def _query(self, query, onto_filter=None):
-        """Execute SPARQL SELECT/ASK; return list of translated rows (not a generator)."""
-        ox_store = (self._get_cached_store() if onto_filter is None
-                    else _build_ox_store(self._world, onto_filter))
-        full_q = _inject_prefixes(self._prefixes, query)
-        result = ox_store.query(full_q, use_default_graph_as_union=self._use_graph_union)
+    def _query_raw(self, query, onto_filter=None):
+        """Execute SPARQL; return raw pyoxigraph QuerySolutions or QueryBoolean."""
+        if onto_filter is not None and not hasattr(self._world.graph, '_store'):
+            # triplelite backend with ontology scope: build a filtered in-memory store
+            ox_store = _build_ox_store(self._world, onto_filter)
+        else:
+            # tripleoxigraph: live store has named graphs — no rebuild needed.
+            # triplelite (no filter): use the cached full-world store.
+            ox_store = self._get_cached_store()
+        return ox_store.query(
+            self._prefix_block + query,
+            use_default_graph_as_union=self._use_graph_union,
+        )
 
+    def _convert_rows(self, result):
+        """Convert raw pyoxigraph result rows to lists of owlready2 Python objects."""
         if isinstance(result, _ox.QueryBoolean):
             return [[bool(result)]]
 
+        cache = self._entity_cache
+        if len(cache) > _ENTITY_CACHE_MAX:
+            cache.clear()
+
         world      = self._world
-        cache      = self._entity_cache
         _NamedNode = _ox.NamedNode
         abbrev_d   = world.graph._abbreviate_d
 
         if abbrev_d is not None:
-            # Dict mode (threshold ≤ 2M resources): two direct dict hits per IRI.
+            # Dict mode (≤ 2M resources): two direct dict hits per IRI.
             entities = world._entities
 
             def _convert(term):
@@ -445,8 +463,8 @@ class OxigraphGraph:
                 cache[iri] = obj
                 return obj
         else:
-            # SQL mode (>2M resources): batch-resolve all unseen IRIs up front so
-            # the convert loop below stays a simple cache hit.
+            # SQL mode (> 2M resources): batch-resolve all unseen IRIs up front so
+            # the convert loop stays a simple cache hit.
             rows = list(result)
             new_iris = list(dict.fromkeys(           # deduplicate, preserve order
                 term.value
@@ -474,17 +492,28 @@ class OxigraphGraph:
 
         return [[_convert(term) for term in sol] for sol in result]
 
+    def _query(self, query, onto_filter=None):
+        """Execute SPARQL and return rows as owlready2 Python objects."""
+        return self._convert_rows(self._query_raw(query, onto_filter))
+
     def _update(self, query, onto_filter=None):
         """Execute a SPARQL UPDATE and sync the diff back to triplelite."""
+        if hasattr(self._world.graph, '_store'):
+            # tripleoxigraph: pyoxigraph IS the source of truth.
+            # Execute directly on the live store — no diff computation or SQLite sync needed.
+            self._world.graph._store.update(self._prefix_block + query)
+            return
+
+        # triplelite backend: compute before/after diff and write it back to SQLite.
         if onto_filter is None:
             ox_store = self._get_cached_store()
         else:
             ox_store = _build_ox_store(self._world, onto_filter)
-        before   = set(ox_store.quads_for_pattern(None, None, None, None))
-        ox_store.update(_inject_prefixes(self._prefixes, query))
-        after    = set(ox_store.quads_for_pattern(None, None, None, None))
+        full_q = self._prefix_block + query
+        before = set(ox_store.quads_for_pattern(None, None, None, None))
+        ox_store.update(full_q)
+        after  = set(ox_store.quads_for_pattern(None, None, None, None))
         _apply_ox_diff(after - before, before - after, self._world, onto_filter)
-        # Triplelite was modified; invalidate so the next query rebuilds from it.
         self._invalidate_cache()
 
     # ── triplelite-level iteration (no SPARQL overhead) ───────────────────────
@@ -574,16 +603,19 @@ class OxigraphGraph:
     # ── public API ────────────────────────────────────────────────────────────
 
     def query_owlready(self, query):
+        """Execute SPARQL and yield rows converted to owlready2 Python objects."""
         return self._query(query)
 
     def update(self, query):
         self._update(query)
 
     def query(self, sparql):
-        """Execute SPARQL SELECT/ASK, yield tuples of raw pyoxigraph terms."""
-        full_query = _inject_prefixes(self._prefixes, sparql)
-        ox_store   = self._get_cached_store()
-        result     = ox_store.query(full_query)
+        """Execute SPARQL SELECT/ASK; yield tuples of raw pyoxigraph terms (no conversion)."""
+        ox_store = self._get_cached_store()
+        result   = ox_store.query(
+            self._prefix_block + sparql,
+            use_default_graph_as_union=self._use_graph_union,
+        )
         if isinstance(result, _ox.QueryBoolean):
             yield (bool(result),)
             return

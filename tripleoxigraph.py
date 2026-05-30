@@ -44,8 +44,10 @@ if _OXIGRAPH_AVAILABLE:
         def __init__(self, filename=None, world=None):
             if filename is None or filename == ":memory:":
                 self._store = pyoxigraph.Store()
+                db_path = ":memory:"
             else:
                 self._store = pyoxigraph.Store(path=filename)
+                db_path = filename.rstrip("/\\") + ".sqlite3"
 
             self.world          = world
             self._lock          = threading.RLock()
@@ -83,27 +85,36 @@ if _OXIGRAPH_AVAILABLE:
             # needed by BaseSubGraph.parse()
             self.last_numbered_iri = {}
 
-            # Shadow in-memory SQLite for search queries
-            self._db = sqlite3.connect(":memory:", check_same_thread=False)
-            self._db.execute("CREATE TABLE objs (c INTEGER, s INTEGER, p INTEGER, o INTEGER)")
-            self._db.execute("CREATE TABLE datas (c INTEGER, s INTEGER, p INTEGER, o BLOB, d INTEGER)")
-            self._db.execute("CREATE VIEW quads AS SELECT c,s,p,o,NULL AS d FROM objs UNION ALL SELECT c,s,p,o,d FROM datas")
-            self._db.execute("CREATE TABLE resources (storid INTEGER PRIMARY KEY, iri TEXT)")
-            self._db.execute("CREATE UNIQUE INDEX index_resources_iri ON resources(iri)")
-            # Separate ontologies table (like triplelite) — c values are independent of storids
-            self._db.execute("CREATE TABLE ontologies (c INTEGER PRIMARY KEY AUTOINCREMENT, iri TEXT UNIQUE)")
-            self._db.execute("CREATE INDEX index_objs_sp ON objs(s,p)")
-            self._db.execute("CREATE UNIQUE INDEX index_objs_op ON objs(o,p,c,s)")
-            self._db.execute("CREATE INDEX index_datas_sp ON datas(s,p)")
-            self._db.execute("CREATE UNIQUE INDEX index_datas_op ON datas(o,p,c,d,s)")
-            for iri, storid in _universal_iri_2_abbrev.items():
-                if isinstance(storid, int) and isinstance(iri, str):
-                    self._db.execute("INSERT OR IGNORE INTO resources (storid, iri) VALUES (?, ?)", (storid, iri))
-            self._db.commit()
+            # Shadow SQLite for search queries (persistent when store is persistent)
+            self._db = sqlite3.connect(db_path, check_same_thread=False)
+            _existing = {r[0] for r in self._db.execute(
+                "SELECT name FROM sqlite_master WHERE type IN ('table','view')"
+            ).fetchall()}
+            _fresh = "objs" not in _existing
 
-            # If store already has data (persistent re-open), rebuild in-memory state
-            if next(self._store.quads_for_pattern(None, None, None, None), None) is not None:
-                self._rebuild_from_store()
+            if _fresh:
+                self._db.execute("CREATE TABLE objs (c INTEGER, s INTEGER, p INTEGER, o INTEGER)")
+                self._db.execute("CREATE TABLE datas (c INTEGER, s INTEGER, p INTEGER, o BLOB, d INTEGER)")
+                self._db.execute("CREATE VIEW quads AS SELECT c,s,p,o,NULL AS d FROM objs UNION ALL SELECT c,s,p,o,d FROM datas")
+                self._db.execute("CREATE TABLE resources (storid INTEGER PRIMARY KEY, iri TEXT)")
+                self._db.execute("CREATE UNIQUE INDEX index_resources_iri ON resources(iri)")
+                # Separate ontologies table (like triplelite) — c values are independent of storids
+                self._db.execute("CREATE TABLE ontologies (c INTEGER PRIMARY KEY AUTOINCREMENT, iri TEXT UNIQUE)")
+                self._db.execute("CREATE INDEX index_objs_sp ON objs(s,p)")
+                self._db.execute("CREATE UNIQUE INDEX index_objs_op ON objs(o,p,c,s)")
+                self._db.execute("CREATE INDEX index_datas_sp ON datas(s,p)")
+                self._db.execute("CREATE UNIQUE INDEX index_datas_op ON datas(o,p,c,d,s)")
+                for iri, storid in _universal_iri_2_abbrev.items():
+                    if isinstance(storid, int) and isinstance(iri, str):
+                        self._db.execute("INSERT OR IGNORE INTO resources (storid, iri) VALUES (?, ?)", (storid, iri))
+                self._db.commit()
+
+                # Fresh open: if pyoxigraph store already has data, rebuild both dicts and SQLite
+                if next(self._store.quads_for_pattern(None, None, None, None), None) is not None:
+                    self._rebuild_from_store()
+            else:
+                # Re-open: SQLite already populated — restore in-memory dicts only
+                self._rebuild_from_db()
 
         def _rebuild_from_store(self):
             """Reconstruct in-memory IRI maps, named-graph index and shadow SQLite from existing pyoxigraph store."""
@@ -149,6 +160,22 @@ if _OXIGRAPH_AVAILABLE:
             db.executemany("INSERT OR IGNORE INTO objs (c,s,p,o) VALUES (?,?,?,?)", obj_rows)
             db.executemany("INSERT OR IGNORE INTO datas (c,s,p,o,d) VALUES (?,?,?,?,?)", data_rows)
             db.commit()
+
+        def _rebuild_from_db(self):
+            """Restore in-memory IRI maps and graph indexes from persistent SQLite on re-open."""
+            for storid, iri in self._db.execute("SELECT storid, iri FROM resources").fetchall():
+                if iri not in _universal_iri_2_abbrev:
+                    self._iri_2_storid[iri]    = storid
+                    self._storid_2_iri[storid] = iri
+                    if storid > self.current_resource:
+                        self.current_resource = storid
+            for c, iri in self._db.execute("SELECT c, iri FROM ontologies").fetchall():
+                graph_iri = iri if "://" in iri else "urn:owlready2:%d" % c
+                gn = pyoxigraph.NamedNode(graph_iri)
+                self._c_2_graphname[c]       = gn
+                self._graphname_to_c[graph_iri] = c
+                if not any(i == iri for _, i in self.ontologies):
+                    self.ontologies.append((c, iri))
 
         # -------------------------------------------------------------------
         # storid <-> IRI
