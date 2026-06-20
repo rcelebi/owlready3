@@ -128,12 +128,67 @@ or point omny at a SPARQL endpoint:
 
 .. code-block:: python
 
-   world.save(file = "ontology.nt", format = "ntriples")   # export
+   import io, pyoxigraph, omny
+   from omny.store import run_pyoxigraph
 
-   import pyoxigraph, omny
-   store = pyoxigraph.Store("/data/mystore")               # persistent RocksDB store
-   store.load(open("ontology.nt", "rb"), format = pyoxigraph.RdfFormat.N_TRIPLES)
-   omny.store.run_pyoxigraph(omny.class_relations_query("<...#Pizza>"), store)
+   buf = io.BytesIO()                                               # serialise RDF to memory
+   world.save(buf, format = "ntriples")                            #   (no temp file)
+
+   store = pyoxigraph.Store("ontology_store")                       # persistent RocksDB dir
+   store.bulk_load(buf.getvalue(), format = pyoxigraph.RdfFormat.N_TRIPLES)   # optimized bulk ingest
+
+   q = omny.class_relations_query("<http://example.org/pizza.owl#Pizza>", construct = False)
+   for sol in run_pyoxigraph(q, store):                             # query the persistent store
+       print(sol["rel"])
+
+For a remote triplestore, point omny at a SPARQL endpoint instead::
+
+   omny.store.run_endpoint(q, "https://example.org/sparql")
+
+Persisting the *reasoned* graph
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Run the reasoner **before** exporting, and the saved RDF carries the inferred triples
+(subsumptions, class assertions, …) alongside the asserted ones — so the persistent store,
+and any omny query against it, see the materialised result with no reasoner needed at query
+time:
+
+.. code-block:: python
+
+   import io, pyoxigraph, omny
+   from owlready3 import *
+   from omny.store import run_pyoxigraph
+
+   world = World()
+   onto  = world.get_ontology("http://example.org/pizza.owl")
+   with onto:
+       class Topping(Thing): pass
+       class Meat(Topping): pass
+       class Cheese(Topping): pass
+       class has_topping(Thing >> Topping): pass
+       AllDisjoint([Meat, Cheese])
+       class Pizza(Thing): pass
+       class VegetarianPizza(Pizza):
+           equivalent_to = [Pizza & Not(has_topping.some(Meat))]
+       class VegetalianPizza(Pizza):                       # vegetarian and no cheese
+           equivalent_to = [Pizza & Not(has_topping.some(Meat)) & Not(has_topping.some(Cheese))]
+
+   with onto:
+       sync_reasoner(world)                                # infers VegetalianPizza ⊑ VegetarianPizza
+
+   buf = io.BytesIO()                                      # asserted + inferred triples,
+   world.save(buf, format="ntriples")                      #   serialised to memory
+
+   store = pyoxigraph.Store("pizza_store")                 # persistent, on-disk
+   store.bulk_load(buf.getvalue(), format=pyoxigraph.RdfFormat.N_TRIPLES)
+
+   q = omny.class_relations_query("<http://example.org/pizza.owl#VegetarianPizza>", construct=False)
+   print(sorted(str(sol["rel"]) for sol in run_pyoxigraph(q, store)))
+   # -> includes VegetalianPizza, which rustdl inferred (it was never asserted)
+
+By default ``sync_reasoner()`` records inferences in a dedicated ``http://inferrences/``
+ontology; calling it inside ``with onto:`` instead records them in ``onto``. Either way
+``world.save()`` exports the whole world, so the inferred triples are included.
 
 
 End-to-end: manipulate, reason, query

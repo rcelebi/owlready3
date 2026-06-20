@@ -101,7 +101,29 @@ is itself the rdflib bridge, so it's equivalent to `run_rdflib(q, world.as_rdfli
 
 For a **persistent** store, export to RDF and load it into omny's backend of choice (e.g.
 pyoxigraph), or point omny at a SPARQL endpoint — Owlready3 stays the in-memory editing
-layer and hands data over as standard RDF.
+layer and hands data over as standard RDF:
+
+```python
+import io, pyoxigraph, omny
+from omny.store import run_pyoxigraph
+
+# 1. Owlready3 serialises standard RDF to memory (no temp file)
+#    (call sync_reasoner(world) first to also export rustdl's inferred triples)
+buf = io.BytesIO()
+world.save(buf, format="ntriples")
+
+# 2. Bulk-load it into a persistent (on-disk) pyoxigraph store
+store = pyoxigraph.Store("pizza_store")                       # RocksDB dir; reopens instantly
+store.bulk_load(buf.getvalue(), format=pyoxigraph.RdfFormat.N_TRIPLES)
+
+# 3. omny queries the persistent store (no Owlready3 needed at query time)
+q = omny.class_relations_query("<http://example.org/pizza.owl#Pizza>", construct=False)
+for sol in run_pyoxigraph(q, store):
+    print(sol["rel"])        # VegetarianPizza, Margherita, Thing, ...
+```
+
+For a remote endpoint, use `omny.store.run_endpoint(q, "https://example.org/sparql")` instead;
+either way Owlready3 only ever produces/consumes standard RDF.
 
 ## Relationship to upstream Owlready2
 
