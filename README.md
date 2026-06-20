@@ -1,201 +1,121 @@
-# Owlready2 — pyoxigraph fork
+# Owlready3 — lightweight Owlready2 fork (rustdl reasoner)
 
-This is a fork of [Owlready2](https://bitbucket.org/jibalamy/owlready2) that replaces the RDFlib SPARQL adapter with a [pyoxigraph](https://github.com/oxigraph/oxigraph) backend, adding a persistent RDF quad-store and three distinct query paths optimised for different use cases.
+Owlready3 is a slimmed-down fork of [Owlready2](https://bitbucket.org/jibalamy/owlready2)
+focused on **in-memory manipulation of small / mid-range OWL & RDF ontologies** as Python
+objects: load, edit, query and save OWL 2.0 in RDF/XML, N-Triples and OWL/XML, with the
+optimized SQLite quad-store (`triplelite`) and the Cython parser retained from upstream.
 
----
+It is designed to be **loosely coupled** with best-of-breed external tools rather than
+bundling everything:
 
-## Backends
+| Concern | Tool | How it plugs in |
+|---|---|---|
+| In-memory OWL/RDF model, load/save, edit | **Owlready3** (this package, zero hard deps) | — |
+| Reasoning (classification, realization) | **[rustdl](https://github.com/MaastrichtU-IDS/rustdl)** (native Rust OWL 2 DL) | `sync_reasoner()`; install `owlready3[reasoning]` |
+| Persistent store + SPARQL querying | **omny** (and any RDF/SPARQL backend) | over the rdflib bridge; install `owlready3[rdflib]` |
 
-Use `backend="oxigraph"` to activate the pyoxigraph store.  The default `backend="sqlite"` (triplelite) is unchanged.
+Compared with upstream Owlready2 this fork **removes** the bundled Java reasoners
+(HermiT/Pellet), the pyoxigraph backend, PyMedTermino2 and the Streamlit UI, and **replaces**
+Java reasoning with rustdl.
+
+## Installation
+
+```bash
+pip install owlready3                 # core only — no third-party dependencies
+pip install owlready3[reasoning]      # + rustdl  (enables sync_reasoner)
+pip install owlready3[rdflib]         # + rdflib  (enables as_rdflib_graph / sparql)
+pip install owlready3[all]            # rustdl + rdflib
+```
+
+Reasoning and the rdflib bridge are optional backends: the core imports and runs without
+them, and each raises a clear "install the extra" error only when you actually use it.
+
+## Core usage
 
 ```python
-from owlready2 import *
+from owlready3 import *
 
-# Persistent file-backed store (RocksDB + SQLite shadow)
-world = World(backend="oxigraph", filename="/data/snomed.owlox")
-onto  = world.get_ontology("file:///data/snomed.owl").load()
+world = World()
+onto  = world.get_ontology("http://example.org/pizza.owl")
+with onto:
+    class Pizza(Thing): pass
+    class VegetarianPizza(Pizza): pass
+    class Margherita(VegetarianPizza): pass
 
-# In-memory (no persistence)
-world = World(backend="oxigraph")
+onto.save(file="pizza.owl", format="rdfxml")     # or "ntriples"
 ```
 
-| Backend | Store file | SPARQL engine | Writes |
-|---------|-----------|---------------|--------|
-| `sqlite` (default) | `*.sqlite3` (SQLite) | rdflib (slow) or pyoxigraph rebuild | via SQLite |
-| `oxigraph` | `*.owlox/` (RocksDB) + `*.owlox.sqlite3` (shadow) | pyoxigraph (fast) | directly to RocksDB |
+(The examples below reuse this `world` / `onto`.)
 
----
+## Reasoning — via rustdl (`owlready3[reasoning]`)
 
-## Query paths
-
-There are **three independent query paths**. Choosing the right one is the key performance decision.
-
-### 1 — Raw SPARQL (`graph.query()`)
-
-Executes SPARQL directly against the pyoxigraph store.  Returns raw `pyoxigraph.NamedNode` / `Literal` / `BlankNode` objects — **no owlready2 conversion**.
-
-```python
-g = world.as_sparql_graph()
-g.bind("owl",  "http://www.w3.org/2002/07/owl#")
-g.bind("rdfs", "http://www.w3.org/2000/01/rdf-schema#")
-
-# yields tuples of raw pyoxigraph terms
-for (cls,) in g.query("SELECT ?c WHERE { ?c a owl:Class }"):
-    print(cls.value)          # IRI string
-```
-
-**Use when:** you need SPARQL results as strings/IRIs without caring about owlready2 objects.  
-**Cost:** SPARQL parse + plan + scan — no Python object construction.
-
----
-
-### 2 — SPARQL with owlready2 conversion (`graph.query_owlready()`)
-
-Same SPARQL execution, but every result term is resolved to an owlready2 Python object (`ThingClass`, `Individual`, `str`, etc.) via the IRI→storid→entity lookup chain.
-
-```python
-for (cls,) in g.query_owlready("SELECT ?c WHERE { ?c a owl:Class }"):
-    print(cls.name)           # owlready2 class object
-    print(cls.label)          # annotation property access
-```
-
-**Use when:** you need to work with owlready2 objects after the query (e.g. navigate `is_a`, call Python methods, read annotation properties).  
-**Cost:** SPARQL cost + per-term IRI→object resolution (dict lookup or SQL batch, cached in `_entity_cache`).
-
-#### Internal split
-
-`query_owlready()` delegates to two separated internal methods, callable individually:
-
-```python
-raw_result = g._query_raw("SELECT ?c WHERE { ?c a owl:Class }")
-# raw_result is a pyoxigraph QuerySolutions object
-
-python_rows = g._convert_rows(raw_result)
-# python_rows is [[owlready2_object, ...], ...]
-```
-
----
-
-### 3 — owlready2 Python API (SQLite-backed)
-
-Class hierarchy traversal, annotation access, and `world.search()` always route through owlready2's internal **SQLite shadow** (`triplelite`), never through pyoxigraph.
-
-```python
-# Direct subclasses — pure SQL, sub-millisecond
-for sub in onto.ClinicalFinding.subclasses():
-    print(sub.name)
-
-# Transitive descendants — recursive SQL CTE
-for cls in onto.ClinicalFinding.descendants():
-    print(cls.name)
-
-# Full-text annotation search
-results = world.search(label="*fracture*")
-
-# Manchester / DL expressions — owlready2 class constructs
-from owlready2 import *
-expr = onto.FindingSite.some(owl.Thing) & onto.ClinicalFinding
-matching = list(expr.subclasses())
-```
-
-**Use when:** navigating the class hierarchy, accessing annotations, or building OWL class expressions.  
-**Cost:** SQLite queries — fast for direct lookups, slower for full transitive traversal of very large hierarchies.
-
----
-
-## Architecture overview
-
-```
-World
-├── graph (TripleOxigraph)          ← pyoxigraph Store (RocksDB, persistent)
-│   ├── _store                      ← pyoxigraph.Store  (live, always current)
-│   └── _db (SQLite shadow)         ← triplelite schema  (IRI ↔ storid mapping,
-│                                      obj/data triple tables for owlready2 SQL ops)
-│
-└── as_sparql_graph() → OxigraphGraph
-    ├── query(sparql)               ← path 1: raw pyoxigraph terms
-    ├── query_owlready(sparql)      ← path 2: owlready2 Python objects
-    │   ├── _query_raw()            ←   executes SPARQL on pyoxigraph store
-    │   └── _convert_rows()         ←   IRI → owlready2 entity resolution
-    └── (Python API calls)          ← path 3: SQL on SQLite shadow
-```
-
-### Why two stores?
-
-| Store | Role |
-|-------|------|
-| **pyoxigraph (RocksDB)** | SPARQL engine — fast pattern matching, arbitrary SPARQL queries |
-| **SQLite shadow** | owlready2 internals — SQL joins for hierarchy traversal, IRI↔storid mapping, annotations |
-
-The SQLite shadow is **not** a backup of pyoxigraph.  It stores the same triples but in a relational schema that owlready2's Python API depends on (recursive CTEs for transitivity, GROUP BY for cardinality, etc.).  These cannot be replaced by RocksDB without rewriting owlready2's core.
-
-### Write paths
-
-| Operation | Goes to |
-|-----------|---------|
-| owlready2 Python API (`cls.is_a =`, `cls.label =`) | SQLite shadow → `_invalidate_cache()` |
-| `graph.update(sparql_update)` (oxigraph backend) | pyoxigraph directly (no SQLite sync, no diff) |
-| `graph.update(sparql_update)` (sqlite backend) | in-memory copy → before/after diff → SQLite |
-
----
-
-## SPARQL UPDATE behaviour
-
-With the `oxigraph` backend, SPARQL UPDATEs go directly to the live pyoxigraph store — no expensive before/after diff:
-
-```python
-g.update("""
-    PREFIX owl: <http://www.w3.org/2002/07/owl#>
-    INSERT DATA { <http://example.org/NewClass> a owl:Class }
-""")
-# Immediately visible to subsequent g.query() and g.query_owlready() calls.
-# SQLite shadow is NOT updated — owlready2 Python API will not see the new class.
-```
-
-If you need the change to be visible via the owlready2 Python API, use the owlready2 API to write instead:
+`sync_reasoner()` exports the world to OWL Functional Syntax and runs the native
+[rustdl](https://github.com/MaastrichtU-IDS/rustdl) reasoner; inferred subsumptions,
+equivalences, unsatisfiable classes and individual types are applied back onto the
+quad-store and the loaded Python objects.
 
 ```python
 with onto:
-    class NewClass(owl.Thing): pass
-# SQLite shadow is updated; pyoxigraph store is updated via _rebuild on next query.
+    sync_reasoner(world)          # rustdl; no JVM required
+
+list(Margherita.is_a)             # reparented to inferred superclasses
 ```
 
----
+`sync_reasoner_hermit` / `sync_reasoner_pellet` remain as deprecated aliases that delegate
+to rustdl. Note rustdl is a DL classifier: SWRL rules, inferred property/data values and
+datatype-facet realization are **not** supported.
 
-## Context graphs
+## SPARQL & persistence — via the rdflib bridge (`owlready3[rdflib]`)
 
-Each ontology maps to a named graph inside the pyoxigraph store.  You can scope queries or updates to a single ontology:
+`World.as_rdflib_graph()` returns a standard `rdflib.Graph` backed by the live quad-store,
+and `World.sparql()` runs SPARQL through rdflib's engine:
 
 ```python
-ctx = g.get_context(onto)           # OxigraphContextGraph
-ctx.query_owlready("SELECT ...")    # query scoped to this ontology's named graph
-ctx.update("INSERT DATA { ... }")   # update routed to this ontology's graph
+rows = world.sparql("SELECT ?s WHERE { ?s a owl:Class }")   # -> list of owlready3 objects
+ok   = world.sparql("ASK { <...#Margherita> rdfs:subClassOf <...#Pizza> }")  # -> bool
+with onto:
+    world.sparql("INSERT DATA { <...#Calzone> a owl:Class }")                # UPDATE
 ```
 
----
+`sparql()` returns: SELECT → rows of owlready3 entities; ASK → `bool`;
+CONSTRUCT/DESCRIBE → an `rdflib.Graph`; UPDATE → writes to the store.
 
-## Performance notes (SNOMED CT, ~2M triples)
+### Using omny for querying
 
-| Operation | Implementation | Typical time |
-|-----------|---------------|--------------|
-| All `owl:Class` (364 k rows) | raw SPARQL | ~470 ms |
-| Direct subclasses of a class | owlready2 Python API | < 1 ms |
-| Transitive descendants (41 k) | owlready2 Python API | ~2.9 s |
-| Transitive descendants (41 k) | SPARQL (recursive) | ~250 ms |
-| Single rdfs:label lookup | raw SPARQL | ~0.03 ms |
-| SPARQL UPDATE (100 triples, batch) | pyoxigraph direct | ~0.2 ms |
-| Rebuild pyoxigraph from NT file (cold) | bulk_load | ~2.3 s |
-| Re-open cached store | RocksDB mmap | ~0.04 ms |
+[omny](https://pypi.org/project/omny/) is a store-agnostic OWL/SPARQL helper. It only
+touches the standard `rdflib.Graph` / `World.sparql()` interfaces — never Owlready3's
+internals — so the coupling is purely through RDF:
 
-The `oxigraph` backend avoids the rebuild cost on re-open: both the RocksDB store and the SQLite shadow are file-backed and loaded directly.
+```python
+import omny
+from omny.store import run_rdflib
 
----
+g = world.as_rdflib_graph()
+q = omny.class_relations_query("<http://example.org/pizza.owl#Pizza>", construct=False)  # SELECT
+run_rdflib(q, g)               # execute against Owlready3's live rdflib graph
+# default construct=True builds a CONSTRUCT query; run_rdflib then returns an rdflib.Graph
+```
+
+(omny's `run_owlready2(q, world)` also works — it calls `world.sparql()`, which in Owlready3
+is itself the rdflib bridge, so it's equivalent to `run_rdflib(q, world.as_rdflib_graph())`.)
+
+For a **persistent** store, export to RDF and load it into omny's backend of choice (e.g.
+pyoxigraph), or point omny at a SPARQL endpoint — Owlready3 stays the in-memory editing
+layer and hands data over as standard RDF.
+
+## Relationship to upstream Owlready2
+
+Owlready3 tracks Owlready2's package shape (flat layout, `triplelite` quad-store, Cython
+parser, Manchester syntax, `close_world`) so that upstream fixes remain mergeable. The
+divergences are: package/import name `owlready3`, the rustdl reasoner, the removed
+backends/modules listed above, and the optional-backend dependency model.
 
 ## Key files
 
 | File | Purpose |
-|------|---------|
-| `owlready2/tripleoxigraph.py` | `TripleOxigraph` — the quadstore backend; wraps pyoxigraph Store + SQLite shadow |
-| `owlready2/pyoxigraph_store.py` | `OxigraphGraph` — SPARQL interface; the three query paths live here |
-| `owlready2/namespace.py` | `World.set_backend()` — wires `backend="oxigraph"` to `TripleOxigraph` |
-| `benchmark_snomed.py` | Full benchmark across all query paths at SNOMED scale |
+|---|---|
+| `reasoning.py` | `sync_reasoner_rustdl` — exports OFN, drives rustdl, applies inferences |
+| `fs_render.py` | World → OWL Functional Syntax serializer (for rustdl) |
+| `rdflib_store.py` | `TripleLiteRDFlibStore` — rdflib bridge over the quad-store |
+| `namespace.py` | `World` — `as_rdflib_graph()`, `sparql()`, backends |
+| `triplelite.py` | the optimized SQLite quad-store |

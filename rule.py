@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Owlready2
+# Owlready3
 # Copyright (C) 2013-2019 Jean-Baptiste LAMY
 # LIMICS (Laboratoire d'informatique médicale et d'ingénierie des connaissances en santé), UMR_S 1142
 # University Paris 13, Sorbonne paris-Cité, Bobigny, France
@@ -17,11 +17,11 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import owlready2
-from owlready2.base       import *
-from owlready2.namespace  import *
-from owlready2.individual import *
-from owlready2.prop       import *
+import owlready3
+from owlready3.base       import *
+from owlready3.namespace  import *
+from owlready3.individual import *
+from owlready3.prop       import *
 
 swrl = owl_world.get_ontology("http://www.w3.org/2003/11/swrl#")
 
@@ -56,11 +56,6 @@ class propertyPredicate(ObjectProperty, FunctionalProperty):
   namespace = swrl
 propertyPredicate.python_name = "property_predicate"
 
-#class argument1(ObjectProperty, FunctionalProperty):
-#  namespace = swrl
-
-#class argument2(ObjectProperty, FunctionalProperty):
-#  namespace = swrl
 
 class arguments(ObjectProperty):
   namespace = swrl
@@ -103,10 +98,6 @@ class Imp(Thing):
     return super().__getattr__(attr)
   
   # Not needed: super implementation is ok!
-  #def __setattr__(self, attr, value):
-  #  if   attr == "body": self.body.reinit(value)
-  #  elif attr == "head": self.head.reinit(value)
-  #  else: return super().__setattr__(attr, value)
   
   def get_variable(self, name, create = True):
     namespace = self.namespace.ontology.get_namespace("urn:swrl#")
@@ -214,8 +205,8 @@ class DataRangeAtom(_FixedArguments, Thing):
   def __getattr__(self, attr):
     if attr == "datarange":
       datarange = self.namespace.world._get_obj_triple_sp_o(self.storid, swrl_datarange)
-      if datarange in owlready2.base._universal_abbrev_2_datatype:
-        datarange = owlready2.base._universal_abbrev_2_datatype[datarange]
+      if datarange in owlready3.base._universal_abbrev_2_datatype:
+        datarange = owlready3.base._universal_abbrev_2_datatype[datarange]
       else:
         datarange = self.namespace.world._get_by_storid(datarange)
       object.__setattr__(self, attr, datarange)
@@ -225,7 +216,7 @@ class DataRangeAtom(_FixedArguments, Thing):
   def __setattr__(self, attr, value):
     if attr == "datarange":
       object.__setattr__(self, attr, value)
-      value = owlready2.base._universal_datatype_2_abbrev.get(value) or value
+      value = owlready3.base._universal_datatype_2_abbrev.get(value) or value
       if hasattr(value, "storid"): value = value.storid
       self.namespace.ontology._set_obj_triple_spo(self.storid, swrl_datarange, value)
     else: super().__setattr__(attr, value)
@@ -378,7 +369,7 @@ def _repr_swrl(x):
 _RULE_PARSER = None
 def _create_rule_parser():
   global _RULE_PARSER
-  import owlready2.rply as rply
+  import owlready3.rply as rply
   
   lg = rply.LexerGenerator()
   lg.add("(", r"\(")

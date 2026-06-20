@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Owlready2
+# Owlready3
 # Copyright (C) 2013-2019 Jean-Baptiste LAMY
 # LIMICS (Laboratoire d'informatique médicale et d'ingénierie des connaissances en santé), UMR_S 1142
 # University Paris 13, Sorbonne paris-Cité, Bobigny, France
@@ -17,10 +17,10 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from owlready2.namespace       import *
-from owlready2.entity          import *
-from owlready2.prop            import *
-from owlready2.class_construct import *
+from owlready3.namespace       import *
+from owlready3.entity          import *
+from owlready3.prop            import *
+from owlready3.class_construct import *
 
 
 class AllDisjoint(object):
@@ -118,18 +118,3 @@ def partition(mother, children):
   AllDisjoint(children)
 
   
-# class DisjointUnion(LogicalClassConstruct):
-#   _owl_op = owl_disjointunion
-#   is_a    = ()
-  
-#   def _satisfied_by(self, x):
-#     for Class in self.Classes:
-#       if Class._satisfied_by(x): return True
-#     return False
-  
-#   def __repr__(self):
-#     s = []
-#     for x in self.Classes:
-#       if isinstance(x, LogicalClassConstruct): s.append("(%s)" % x)
-#       else:                                    s.append(repr(x))
-#     return "%s([%s])" % (self.__class__.__name__, ", ".join(s))

@@ -10,7 +10,7 @@ renamed in Python, see :ref:`associating-python-alias-name-to-properties`):
 
 ::
 
-   >>> from owlready2 import *
+   >>> from owlready3 import *
    
    >>> onto = get_ontology("http://test.org/onto.owl")
    
@@ -58,12 +58,12 @@ For example:
 Associating a Python module to an OWL ontology
 ----------------------------------------------
 
-It is possible to associate a Python module with an OWL ontology. When Owlready2 loads the ontology,
+It is possible to associate a Python module with an OWL ontology. When Owlready3 loads the ontology,
 it will automatically import the Python module.
 This is done with the 'python_module' annotation, which should be set on the ontology itself.
 The value should be the name of your Python module, *e.g.* 'my_package.my_module'.
 This annotation can be set with editor like Protégé, after importing the 'owlready_ontology.owl' ontology
-(file 'owlready2/owlready_ontology.owl' in Owlready2 sources, URI http://www.lesfleursdunormal.fr/static/_downloads/owlready_ontology.owl):
+(file 'owlready3/owlready_ontology.owl' in Owlready3 sources, URI http://www.lesfleursdunormal.fr/static/_downloads/owlready_ontology.owl):
 
 .. figure:: _images/protege_python_module_annotation.png
 
@@ -76,7 +76,7 @@ For example, in file 'my_python_module.py':
 
 ::
 
-   >>> from owlready2 import *
+   >>> from owlready3 import *
    
    >>> onto = get_ontology("http://test.org/onto.owl") # Do not load the ontology here!
    
@@ -93,4 +93,4 @@ And then, in OWL file 'onto.owl', you can define:
  * The 'has_for_cost' Property (ommitted in Python -- not needed because it has no method)
  * The 'has_for_number_of_tablets' Property (also ommitted)
 
-In this way, Owlready2 allows you to take the best of Python and OWL!
+In this way, Owlready3 allows you to take the best of Python and OWL!

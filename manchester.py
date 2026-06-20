@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""OWL Manchester Syntax support for owlready2.
+"""OWL Manchester Syntax support for owlready3.
 
 Public API
 ----------
@@ -8,7 +8,7 @@ Serialiser:
   manchester_render_ontology(onto, **kw)      -> str
 
 Parser:
-  parse_manchester_expression(text, onto)     -> owlready2 construct
+  parse_manchester_expression(text, onto)     -> owlready3 construct
   parse_manchester_ontology(source, onto)     -> onto   (loads .omn file)
 
 Query helpers:
@@ -56,7 +56,7 @@ _XSD_TO_PY = {
 _PY_TO_XSD = {str: "xsd:string", int: "xsd:integer",
               float: "xsd:double", bool: "xsd:boolean"}
 
-# Mapping from owlready2 Python kwarg names → Manchester OWL 2 facet tokens
+# Mapping from owlready3 Python kwarg names → Manchester OWL 2 facet tokens
 _FACET_TO_MANCHESTER = {
     "min_inclusive":   ">=",
     "max_inclusive":   "<=",
@@ -88,9 +88,13 @@ _CHARACTERISTICS = {
 # ─────────────────────────────────────────────────────────────────────────────
 
 def _iri_to_short(iri, extra_prefixes=None):
-    """Shorten an IRI using well-known or user-supplied prefixes."""
+    """Shorten an IRI using well-known or user-supplied prefixes.
+
+    `extra_prefixes` may be a {namespace_iri: prefix} dict or an iterable of
+    (namespace_iri, prefix) pairs."""
     if extra_prefixes:
-        for ns, pfx in extra_prefixes:
+        pairs = extra_prefixes.items() if isinstance(extra_prefixes, dict) else extra_prefixes
+        for ns, pfx in pairs:
             if iri.startswith(ns):
                 return pfx + iri[len(ns):]
     for ns, pfx in _BUILTIN_PREFIXES:
@@ -111,7 +115,7 @@ def _iri_to_short(iri, extra_prefixes=None):
 
 def _literal_to_manchester(value):
     """Serialise a Python literal to Manchester OWL syntax."""
-    from owlready2.util import locstr as _locstr
+    from owlready3.util import locstr as _locstr
     if isinstance(value, _locstr):
         escaped = str(value).replace('\\', '\\\\').replace('"', '\\"')
         if value.lang:
@@ -130,14 +134,14 @@ def _literal_to_manchester(value):
 
 
 def _entity_label(entity, prefixes=None):
-    """Return short Manchester name for any owlready2 entity or Python type."""
+    """Return short Manchester name for any owlready3 entity or Python type."""
     if entity is None:
         return "owl:Nothing"
     if entity in _PY_TO_XSD:
         return _PY_TO_XSD[entity]
     # Inverse construct: serialize as  inverse (prop)
     try:
-        from owlready2.class_construct import Inverse as _Inv
+        from owlready3.class_construct import Inverse as _Inv
         if isinstance(entity, _Inv):
             return "inverse (%s)" % _iri_to_short(entity.property.iri, prefixes)
     except Exception:
@@ -157,7 +161,7 @@ _PREC_ATOM = 4
 
 
 def _prec(expr):
-    from owlready2.class_construct import And, Or, Not
+    from owlready3.class_construct import And, Or, Not
     if isinstance(expr, Or):  return _PREC_OR
     if isinstance(expr, And): return _PREC_AND
     if isinstance(expr, Not): return _PREC_NOT
@@ -165,7 +169,7 @@ def _prec(expr):
 
 
 def to_manchester(expr, prefixes=None):
-    """Serialise an owlready2 class expression to a Manchester OWL syntax string.
+    """Serialise an owlready3 class expression to a Manchester OWL syntax string.
 
     Parameters
     ----------
@@ -177,10 +181,10 @@ def to_manchester(expr, prefixes=None):
     -------
     str
     """
-    from owlready2.class_construct import (And, Or, Not, Restriction,
+    from owlready3.class_construct import (And, Or, Not, Restriction,
                                            OneOf, ConstrainedDatatype,
                                            Inverse, _PY_FACETS)
-    from owlready2.base import SOME, ONLY, VALUE, HAS_SELF, EXACTLY, MIN, MAX
+    from owlready3.base import SOME, ONLY, VALUE, HAS_SELF, EXACTLY, MIN, MAX
 
     if expr is None:
         return "owl:Nothing"
@@ -267,7 +271,7 @@ def to_manchester(expr, prefixes=None):
 
 def _filler(v, prefixes):
     """Render restriction filler; wrap And/Or in parens (they are not primary)."""
-    from owlready2.class_construct import And, Or
+    from owlready3.class_construct import And, Or
     s = to_manchester(v, prefixes)
     if isinstance(v, (And, Or)):
         s = "(%s)" % s
@@ -279,14 +283,14 @@ def manchester_render_ontology(onto, prefixes=None):
 
     Parameters
     ----------
-    onto     : owlready2.Ontology
+    onto     : owlready3.Ontology
     prefixes : optional list of (namespace_iri, prefix_str) pairs
 
     Returns
     -------
     str
     """
-    import owlready2
+    import owlready3
 
     lines = []
 
@@ -328,7 +332,7 @@ def manchester_render_ontology(onto, prefixes=None):
             lines.append("    Range: %s" % ", ".join(
                 _entity_label(r, prefixes) for r in prop.range))
         named_sup = [p for p in prop.is_a
-                     if hasattr(p, "iri") and p is not owlready2.ObjectProperty]
+                     if hasattr(p, "iri") and p is not owlready3.ObjectProperty]
         if named_sup:
             lines.append("    SubPropertyOf: %s" % ", ".join(
                 _entity_label(p, prefixes) for p in named_sup))
@@ -365,14 +369,14 @@ def manchester_render_ontology(onto, prefixes=None):
         lines.append("Class: %s" % _entity_label(cls, prefixes))
         # SubClassOf — restrictions / constructs (non-named superclasses)
         construct_parents = [p for p in cls.is_a
-                             if not isinstance(p, owlready2.ThingClass)]
+                             if not isinstance(p, owlready3.ThingClass)]
         if construct_parents:
             lines.append("    SubClassOf: %s" % ", ".join(
                 to_manchester(p, prefixes) for p in construct_parents))
         # SubClassOf — named superclasses (excluding Thing)
         named_parents = [p for p in cls.is_a
-                         if isinstance(p, owlready2.ThingClass)
-                         and p is not owlready2.Thing]
+                         if isinstance(p, owlready3.ThingClass)
+                         and p is not owlready3.Thing]
         if named_parents:
             lines.append("    SubClassOf: %s" % ", ".join(
                 _entity_label(p, prefixes) for p in named_parents))
@@ -393,7 +397,7 @@ def manchester_render_ontology(onto, prefixes=None):
     for ind in onto.individuals():
         lines.append("Individual: %s" % _entity_label(ind, prefixes))
         types = [t for t in ind.is_a
-                 if isinstance(t, owlready2.ThingClass) and t is not owlready2.Thing]
+                 if isinstance(t, owlready3.ThingClass) and t is not owlready3.Thing]
         if types:
             lines.append("    Types: %s" % ", ".join(
                 _entity_label(t, prefixes) for t in types))
@@ -403,15 +407,15 @@ def manchester_render_ontology(onto, prefixes=None):
 
 
 def _property_characteristics(prop):
-    import owlready2
+    import owlready3
     _map = [
-        (owlready2.FunctionalProperty,        "Functional"),
-        (owlready2.InverseFunctionalProperty,  "InverseFunctional"),
-        (owlready2.TransitiveProperty,         "Transitive"),
-        (owlready2.SymmetricProperty,          "Symmetric"),
-        (owlready2.AsymmetricProperty,         "Asymmetric"),
-        (owlready2.ReflexiveProperty,          "Reflexive"),
-        (owlready2.IrreflexiveProperty,        "Irreflexive"),
+        (owlready3.FunctionalProperty,        "Functional"),
+        (owlready3.InverseFunctionalProperty,  "InverseFunctional"),
+        (owlready3.TransitiveProperty,         "Transitive"),
+        (owlready3.SymmetricProperty,          "Symmetric"),
+        (owlready3.AsymmetricProperty,         "Asymmetric"),
+        (owlready3.ReflexiveProperty,          "Reflexive"),
+        (owlready3.IrreflexiveProperty,        "Irreflexive"),
     ]
     return [label for cls, label in _map if issubclass(type(prop), cls)]
 
@@ -549,10 +553,10 @@ class _ExprParser:
         return self._pfx.get("", self._onto.base_iri) + name
 
     def _resolve(self, name):
-        """Look up an owlready2 entity by name."""
-        import owlready2
-        if name in ("owl:Thing", "Thing"):    return owlready2.Thing
-        if name in ("owl:Nothing", "Nothing"): return owlready2.Nothing
+        """Look up an owlready3 entity by name."""
+        import owlready3
+        if name in ("owl:Thing", "Thing"):    return owlready3.Thing
+        if name in ("owl:Nothing", "Nothing"): return owlready3.Nothing
         if name.startswith("xsd:"):
             local = name[4:]
             if local in _XSD_TO_PY:
@@ -571,7 +575,7 @@ class _ExprParser:
 
     def _description(self):
         """description ::= conjunction ('or' conjunction)*"""
-        from owlready2.class_construct import Or
+        from owlready3.class_construct import Or
         left = self._conjunction()
         if not self._match("or"):
             return left
@@ -583,7 +587,7 @@ class _ExprParser:
 
     def _conjunction(self):
         """conjunction ::= primary ('and' primary)*"""
-        from owlready2.class_construct import And
+        from owlready3.class_construct import And
         left = self._primary()
         if not self._match("and"):
             return left
@@ -595,7 +599,7 @@ class _ExprParser:
 
     def _primary(self):
         """primary ::= 'not' primary | '(' description ')' | '{' … '}' | restriction_or_atomic"""
-        from owlready2.class_construct import Not
+        from owlready3.class_construct import Not
         tok = self._cur
 
         if tok.value == "not":
@@ -618,15 +622,15 @@ class _ExprParser:
 
     def _restriction_or_atomic(self):
         """Either a restriction  `Prop keyword [n] Filler` or a plain class."""
-        from owlready2.base import SOME, ONLY, VALUE, HAS_SELF, EXACTLY, MIN, MAX
-        from owlready2.class_construct import Restriction
+        from owlready3.base import SOME, ONLY, VALUE, HAS_SELF, EXACTLY, MIN, MAX
+        from owlready3.class_construct import Restriction
 
         if self._cur.value == "inverse":
             self._eat()
             self._eat("(")
             prop = self._entity_tok()
             self._eat(")")
-            from owlready2.class_construct import Inverse
+            from owlready3.class_construct import Inverse
             subject = Inverse(prop)
         else:
             subject = self._entity_tok()
@@ -688,7 +692,7 @@ class _ExprParser:
 
     def _parse_literal(self, s):
         """Parse a Manchester string token into a typed Python value."""
-        from owlready2.util import locstr as _locstr
+        from owlready3.util import locstr as _locstr
         # Strip outer quotes
         end_q = s.rfind('"', 1)
         content = s[1:end_q].replace('\\"', '"').replace("\\n", "\n").replace("\\t", "\t")
@@ -714,7 +718,7 @@ class _ExprParser:
 
     def _constrained_datatype(self, base_type):
         """Parse  [ facet val, ... ]  after a XSD base type."""
-        from owlready2 import ConstrainedDatatype
+        from owlready3 import ConstrainedDatatype
         self._eat("[")
         facets = {}
         while self._cur.value != "]" and not self._at_end():
@@ -754,7 +758,7 @@ class _ExprParser:
 
     def _oneof(self):
         """{individual, individual, ...}"""
-        from owlready2.class_construct import OneOf
+        from owlready3.class_construct import OneOf
         self._eat("{")
         inds = []
         while self._cur.value != "}":
@@ -766,17 +770,17 @@ class _ExprParser:
 
 
 def parse_manchester_expression(text, ontology, prefixes=None):
-    """Parse a Manchester OWL class expression into an owlready2 construct.
+    """Parse a Manchester OWL class expression into an owlready3 construct.
 
     Parameters
     ----------
     text      : str  — e.g. ``"hasPart some (Cat and Pet)"``
-    ontology  : owlready2.Ontology
+    ontology  : owlready3.Ontology
     prefixes  : dict  prefix_name -> namespace_iri  (optional)
 
     Returns
     -------
-    owlready2 class expression
+    owlready3 class expression
     """
     toks   = list(_tokenize(text))
     parser = _ExprParser(toks, ontology, prefixes)
@@ -873,7 +877,7 @@ class _OmnParser:
         return self._iri(tok.value)
 
     def _get_or_create(self, iri, base_cls):
-        import owlready2
+        import owlready3
         entity = self._world[iri]
         if entity is not None:
             return entity
@@ -940,13 +944,13 @@ class _OmnParser:
     def _pre_create_entities(self):
         """Linear scan: collect Prefix declarations, then pre-create all entity
         stubs so forward references in class expressions resolve correctly."""
-        import owlready2
+        import owlready3
         _entity_kw = {
-            "Class":              owlready2.Thing,
-            "ObjectProperty":     owlready2.ObjectProperty,
-            "DataProperty":       owlready2.DataProperty,
-            "AnnotationProperty": owlready2.AnnotationProperty,
-            "Individual":         owlready2.Thing,
+            "Class":              owlready3.Thing,
+            "ObjectProperty":     owlready3.ObjectProperty,
+            "DataProperty":       owlready3.DataProperty,
+            "AnnotationProperty": owlready3.AnnotationProperty,
+            "Individual":         owlready3.Thing,
         }
         toks = self._toks
         n    = len(toks)
@@ -1061,9 +1065,9 @@ class _OmnParser:
             pass
 
     def _class_frame(self):
-        import owlready2
+        import owlready3
         iri = self._eat_iri()
-        cls = self._get_or_create(iri, owlready2.Thing)
+        cls = self._get_or_create(iri, owlready3.Thing)
         with self._onto:
             while self._is_section():
                 sec = self._eat().value
@@ -1078,20 +1082,20 @@ class _OmnParser:
                             cls.equivalent_to.append(e)
                 elif sec == "DisjointWith":
                     for e in self._parse_expr_list():
-                        owlready2.AllDisjoint([cls, e])
+                        owlready3.AllDisjoint([cls, e])
                 elif sec == "DisjointUnionOf":
                     parts = self._parse_expr_list()
                     if parts:
-                        cls.equivalent_to.append(owlready2.Or(parts))
+                        cls.equivalent_to.append(owlready3.Or(parts))
                 else:
                     self._skip_section()
 
     def _property_frame(self, kind):
-        import owlready2
+        import owlready3
         iri  = self._eat_iri()
-        base = {"object": owlready2.ObjectProperty,
-                "data":   owlready2.DataProperty,
-                "annotation": owlready2.AnnotationProperty}[kind]
+        base = {"object": owlready3.ObjectProperty,
+                "data":   owlready3.DataProperty,
+                "annotation": owlready3.AnnotationProperty}[kind]
         prop = self._get_or_create(iri, base)
         with self._onto:
             while self._is_section():
@@ -1119,15 +1123,15 @@ class _OmnParser:
                     self._skip_section()
 
     def _characteristics(self, prop):
-        import owlready2
+        import owlready3
         _map = {
-            "Functional":        owlready2.FunctionalProperty,
-            "InverseFunctional": owlready2.InverseFunctionalProperty,
-            "Transitive":        owlready2.TransitiveProperty,
-            "Symmetric":         owlready2.SymmetricProperty,
-            "Asymmetric":        owlready2.AsymmetricProperty,
-            "Reflexive":         owlready2.ReflexiveProperty,
-            "Irreflexive":       owlready2.IrreflexiveProperty,
+            "Functional":        owlready3.FunctionalProperty,
+            "InverseFunctional": owlready3.InverseFunctionalProperty,
+            "Transitive":        owlready3.TransitiveProperty,
+            "Symmetric":         owlready3.SymmetricProperty,
+            "Asymmetric":        owlready3.AsymmetricProperty,
+            "Reflexive":         owlready3.ReflexiveProperty,
+            "Irreflexive":       owlready3.IrreflexiveProperty,
         }
         while (not self._at_end() and self._cur.type == _T_WORD
                and not self._is_section() and not self._is_frame()):
@@ -1139,11 +1143,11 @@ class _OmnParser:
                 self._eat()
 
     def _individual_frame(self):
-        import owlready2
+        import owlready3
         iri = self._eat_iri()
         entity = self._world.get(iri)
         if entity is None:
-            entity = owlready2.Thing(_local_name(iri), namespace=self._onto)
+            entity = owlready3.Thing(_local_name(iri), namespace=self._onto)
         with self._onto:
             while self._is_section():
                 sec = self._eat().value
@@ -1190,17 +1194,17 @@ class _OmnParser:
                 pass
 
     def _misc_frame(self, kw):
-        import owlready2
+        import owlready3
         exprs = self._parse_expr_list()
         if not exprs:
             return
         with self._onto:
             if kw in ("DisjointClasses", "DisjointProperties"):
-                owlready2.AllDisjoint(exprs)
+                owlready3.AllDisjoint(exprs)
             elif kw == "EquivalentClasses" and len(exprs) >= 2:
                 exprs[0].equivalent_to.append(exprs[1])
             elif kw == "DifferentIndividuals":
-                owlready2.AllDifferent(exprs)
+                owlready3.AllDifferent(exprs)
 
 
 def _parse_string_literal(s):
@@ -1217,7 +1221,7 @@ def parse_manchester_ontology(source, ontology):
     Parameters
     ----------
     source   : str | readable file-like
-    ontology : owlready2.Ontology
+    ontology : owlready3.Ontology
 
     Returns
     -------
@@ -1245,11 +1249,11 @@ def parse_manchester_ontology(source, ontology):
 def _eval_expr(expr, ind):
     """Return True if individual *ind* satisfies class expression *expr*.
 
-    Handles all owlready2 class constructs including Restriction fillers that
+    Handles all owlready3 class constructs including Restriction fillers that
     are plain Python types (float, int, str) representing XSD datatypes —
     which the built-in _satisfied_by() does not support.
     """
-    from owlready2.class_construct import (
+    from owlready3.class_construct import (
         And, Or, Not, Restriction, OneOf, ConstrainedDatatype,
         SOME, ONLY, VALUE, HAS_SELF, MIN, MAX, EXACTLY,
     )
@@ -1316,7 +1320,7 @@ def _eval_expr(expr, ind):
 
 def _eval_constrained(dtype, val):
     """Return True if *val* satisfies all facets of a ConstrainedDatatype."""
-    from owlready2.class_construct import _PY_FACETS
+    from owlready3.class_construct import _PY_FACETS
     if not isinstance(val, dtype.base_datatype):
         return False
     for facet in _PY_FACETS:
@@ -1346,7 +1350,7 @@ def instances_of(cls, direct=False, ontology=None):
 
     Parameters
     ----------
-    cls      : owlready2 OWL class or class expression
+    cls      : owlready3 OWL class or class expression
     direct   : if False (default) also include instances of subclasses
     ontology : required when *cls* is an anonymous expression
 
@@ -1400,7 +1404,7 @@ def classes_matching(expr_str, ontology):
     Parameters
     ----------
     expr_str : str
-    ontology : owlready2.Ontology
+    ontology : owlready3.Ontology
 
     Returns
     -------
@@ -1418,7 +1422,7 @@ def classes_matching(expr_str, ontology):
 def _cdt_equal(a, b):
     """Content-based equality for ConstrainedDatatype (which lacks __eq__)."""
     try:
-        from owlready2 import ConstrainedDatatype as _CDT
+        from owlready3 import ConstrainedDatatype as _CDT
     except ImportError:
         return a == b
     if not (isinstance(a, _CDT) and isinstance(b, _CDT)):
@@ -1435,8 +1439,8 @@ def _cdt_equal(a, b):
 
 def _expr_equal(a, b):
     """Structural equality for OWL class expressions, CDT-aware."""
-    from owlready2.class_construct import Restriction
-    from owlready2 import ConstrainedDatatype as _CDT
+    from owlready3.class_construct import Restriction
+    from owlready3 import ConstrainedDatatype as _CDT
     if isinstance(a, _CDT) or isinstance(b, _CDT):
         return _cdt_equal(a, b)
     if isinstance(a, Restriction) and isinstance(b, Restriction):
@@ -1462,7 +1466,7 @@ def _expr_equal(a, b):
 def _expr_contains(haystack, needle):
     if _expr_equal(haystack, needle):
         return True
-    from owlready2.class_construct import And, Or, Not, Restriction
+    from owlready3.class_construct import And, Or, Not, Restriction
     if isinstance(haystack, (And, Or)):
         return any(_expr_contains(c, needle) for c in haystack.Classes)
     if isinstance(haystack, Not):
@@ -1479,7 +1483,7 @@ def _expr_contains(haystack, needle):
 # ─────────────────────────────────────────────────────────────────────────────
 
 def _patch_driver():
-    import owlready2.driver as drv
+    import owlready3.driver as drv
 
     _orig_guess = drv._guess_format
 
@@ -1520,7 +1524,7 @@ def _patch_driver():
 
 
 def _patch_save():
-    import owlready2.driver as drv
+    import owlready3.driver as drv
 
     _orig_save = drv._save
 
@@ -1543,7 +1547,7 @@ def _patch_save():
 
 
 def _patch_world():
-    from owlready2.namespace import World
+    from owlready3.namespace import World
 
     def manchester_query(self, expr_str, ontology=None):
         """Find individuals matching a Manchester class expression.
@@ -1551,7 +1555,7 @@ def _patch_world():
         Parameters
         ----------
         expr_str  : str — Manchester expression
-        ontology  : owlready2.Ontology (optional; uses first loaded ontology)
+        ontology  : owlready3.Ontology (optional; uses first loaded ontology)
 
         Returns
         -------
@@ -1563,12 +1567,12 @@ def _patch_world():
                 raise ValueError("No ontologies in this world.")
             ontology = ontos[0]
 
-        import owlready2
+        import owlready3
         expr = parse_manchester_expression(expr_str, ontology)
         result, seen = [], set()
 
         # Named class: collect instances of it and all subclasses
-        if isinstance(expr, owlready2.ThingClass):
+        if isinstance(expr, owlready3.ThingClass):
             for ind in instances_of(expr):
                 k = id(ind)
                 if k not in seen:

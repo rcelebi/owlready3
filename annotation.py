@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Owlready2
+# Owlready3
 # Copyright (C) 2013-2019 Jean-Baptiste LAMY
 # LIMICS (Laboratoire d'informatique médicale et d'ingénierie des connaissances en santé), UMR_S 1142
 # University Paris 13, Sorbonne paris-Cité, Bobigny, France
@@ -17,39 +17,9 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from owlready2.namespace import *
-from owlready2.prop      import *
-from owlready2.prop      import _CLASS_PROPS
-
-# import weakref
-# _annot_axiom_cache = weakref.WeakValueDictionary()
-
-# class _AnnotAxiom(object):
-#   def __init__(self, source, property, target, target_d):
-#     self.namespace = source.namespace.ontology
-#     self.source    = source
-#     self.property  = property
-#     self.target    = target
-#     self.target_d  = target_d
-#     self.bnode     = self.search_bnode()
-    
-#   def search_bnode(self):
-#     if self.target_d is None:
-#       for bnode in self.namespace._get_obj_triples_po_s(rdf_type, owl_axiom):
-#         for p, o in self._get_obj_triples_s_po(bnode):
-#           if   (p == owl_annotatedsource)   and (o != self.source):   break
-#           elif (p == owl_annotatedproperty) and (o != self.property): break
-#           elif (p == owl_annotatedtarget)   and (o != self.target):   break
-#       else:
-#         return bnode
-#     else:
-#       for bnode in self.namespace._get_obj_triples_po_s(rdf_type, owl_axiom):
-#         for p, o, d in self._get_triples_s_pod(bnode):
-#           if   (p == owl_annotatedsource)   and (o != self.source):   break
-#           elif (p == owl_annotatedproperty) and (o != self.property): break
-#           elif (p == owl_annotatedtarget)   and (o != self.target):   break
-#       else:
-#         return bnode
+from owlready3.namespace import *
+from owlready3.prop      import *
+from owlready3.prop      import _CLASS_PROPS
 
 class _AnnotList(CallbackListWithLanguage):
   __slots__ = ["namespace", "_property", "_target", "_target_d", "_annot", "_od_2_bnode"]

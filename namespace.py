@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Owlready2
+# Owlready3
 # Copyright (C) 2013-2019 Jean-Baptiste LAMY
 # LIMICS (Laboratoire d'informatique médicale et d'ingénierie des connaissances en santé), UMR_S 1142
 # University Paris 13, Sorbonne paris-Cité, Bobigny, France
@@ -19,10 +19,10 @@
 
 import importlib, urllib.request, urllib.parse
 
-from owlready2.base import *
-from owlready2.base import _universal_abbrev_2_iri, _universal_iri_2_abbrev, _universal_abbrev_2_datatype, _universal_datatype_2_abbrev
+from owlready3.base import *
+from owlready3.base import _universal_abbrev_2_iri, _universal_iri_2_abbrev, _universal_abbrev_2_datatype, _universal_datatype_2_abbrev
 
-from owlready2.triplelite import *
+from owlready3.triplelite import *
 
 CURRENT_NAMESPACES = ContextVar("CURRENT_NAMESPACES", default = None)
 
@@ -105,7 +105,7 @@ class _GraphManager(object):
     if   isinstance(o, int):
       return self._get_obj_triples_spo_spo(s, p, o)
     elif isinstance(o, str):
-      from owlready2.driver import INT_DATATYPES, FLOAT_DATATYPES
+      from owlready3.driver import INT_DATATYPES, FLOAT_DATATYPES
       o, d = o.rsplit('"', 1)
       o = o[1:]
       if   d.startswith("@"): pass
@@ -125,33 +125,6 @@ class _GraphManager(object):
         r.append((s,p,o))
       return r
     
-  # def get_triples_rdf(self, s = None, p = None, o = None, d = None):
-  #   if s is None: s2 = None
-  #   else:         s2 = self.world._abbreviate(s)
-  #   if p is None:            p2 = None
-  #   elif isinstance(p, int): p2 = p
-  #   else:                    p2 = self.world._abbreviate(p)
-  #   if o is None: o2, d2 = None, None
-  #   else:         o2, d2 = self.world._to_rdf(o)
-    
-  #   r = []
-  #   for s3, p3, o3, d3 in self._get_triples_spod_spod(s2, p2, o2, d2):
-  #     if not o is None:
-  #       r.append((s or self.world._unabbreviate(s3),
-  #                 p or self.world._unabbreviate(p3),
-  #                 o, d))
-  #     else:
-  #       if d3 is None:
-  #         r.append((s or self.world._unabbreviate(s3),
-  #                   p or self.world._unabbreviate(p3),
-  #                   self.world._unabbreviate(o3),
-  #                   None))
-  #       else:
-  #         r.append((s or self.world._unabbreviate(s3),
-  #                   p or self.world._unabbreviate(p3),
-  #                   from_literal(o3, d3),
-  #                   self.world._unabbreviate(d3) if isinstance(d3, int) else d3))
-  #   return r
   
   def _refactor(self, storid, new_iri): pass
   
@@ -227,7 +200,7 @@ WHERE q1.p=? AND q1.o=?
       if not s < 0: s = self._unabbreviate(s)
       if p: p = self._unabbreviate(p)
       if o and not ((isinstance(o, int) and (o < 0)) or (isinstance(o, str) and o.startswith('"'))): o = self._unabbreviate(o)
-      print("* Owlready2 * DEL TRIPLE", s, p, o, file = sys.stderr)
+      print("* Owlready3 * DEL TRIPLE", s, p, o, file = sys.stderr)
       
   def _del_data_triple_spod(self, s = None, p = None, o = None, d = None):
     #if CURRENT_NAMESPACES[-1] is None: self._del_data_triple_raw_spod(s, p, o, d)
@@ -238,7 +211,7 @@ WHERE q1.p=? AND q1.o=?
       if not s < 0: s = self._unabbreviate(s)
       if p: p = self._unabbreviate(p)
       if d and (not d.startswith("@")): d = self._unabbreviate(d)
-      print("* Owlready2 * DEL TRIPLE", s, p, o, d, file = sys.stderr)
+      print("* Owlready3 * DEL TRIPLE", s, p, o, d, file = sys.stderr)
       
   def _parse_list(self, bnode):
     l = []
@@ -335,7 +308,7 @@ WHERE q1.p=? AND q1.o=?
         if sub is None: yield self._parse_bnode(s)
         
   def search(self, _use_str_as_loc_str = True, _case_sensitive = True, _bm25 = False, **kargs):
-    from owlready2.triplelite import _SearchList, _SearchMixin
+    from owlready3.triplelite import _SearchList, _SearchMixin
     
     prop_vals = []
     for k, v0 in kargs.items():
@@ -415,7 +388,7 @@ def _clear_cache():
 
 WORLDS = weakref.WeakSet()
 class World(_GraphManager):
-  def __init__(self, backend = "sqlite", filename = ":memory:", dbname = "owlready2_quadstore", **kargs):
+  def __init__(self, backend = "sqlite", filename = ":memory:", dbname = "owlready3_quadstore", **kargs):
     global owl_world
     
     self.world            = self
@@ -425,7 +398,7 @@ class World(_GraphManager):
     self._reasoning_props = {}
     self._entities        = weakref.WeakValueDictionary()
     self._namespaces      = weakref.WeakValueDictionary()
-    self._ox_graph        = None
+    self._rdflib_store    = None
     self.graph            = None
     
     if not owl_world is None:
@@ -436,20 +409,13 @@ class World(_GraphManager):
     if filename:
       self.set_backend(backend, filename, dbname, **kargs)
       
-  def set_backend(self, backend = "sqlite", filename = ":memory:", dbname = "owlready2_quadstore", **kargs):
+  def set_backend(self, backend = "sqlite", filename = ":memory:", dbname = "owlready3_quadstore", **kargs):
     if   backend == "sqlite":
-      from owlready2.triplelite import Graph
+      from owlready3.triplelite import Graph
       if self.graph and len(self.graph):
         self.graph = Graph(filename, world = self, clone = self.graph, **kargs)
       else:
         self.graph = Graph(filename, world = self, **kargs)
-    elif backend == "oxigraph":
-      from owlready2.tripleoxigraph import OxigraphGraph, _OXIGRAPH_AVAILABLE
-      if not _OXIGRAPH_AVAILABLE:
-        raise ImportError("pyoxigraph is required for the oxigraph backend. Install with: pip install pyoxigraph")
-      if self.graph and len(self.graph):
-        raise ValueError("Cannot switch to oxigraph backend with existing triples (cloning not supported)")
-      self.graph = OxigraphGraph(filename, world = self)
     else:
       raise ValueError("Unsupported backend type '%s'!" % backend)
     for method in self.graph.__class__.BASE_METHODS + self.graph.__class__.WORLD_METHODS:
@@ -489,39 +455,70 @@ class World(_GraphManager):
     if   file is None:
       self.graph.commit()
     elif isinstance(file, str):
-      if _LOG_LEVEL: print("* Owlready2 * Saving world %s to %s..." % (self, file), file = sys.stderr)
+      if _LOG_LEVEL: print("* Owlready3 * Saving world %s to %s..." % (self, file), file = sys.stderr)
       file = open(file, "wb")
       self.graph.save(file, format, **kargs)
       file.close()
     else:
-      if _LOG_LEVEL: print("* Owlready2 * Saving world %s to %s..." % (self, getattr(file, "name", "???")), file = sys.stderr)
+      if _LOG_LEVEL: print("* Owlready3 * Saving world %s to %s..." % (self, getattr(file, "name", "???")), file = sys.stderr)
       self.graph.save(file, format, **kargs)
-      
-  def as_sparql_graph(self):
-    if self._ox_graph is None:
-      import owlready2.pyoxigraph_store
-      self._ox_graph = owlready2.pyoxigraph_store.OxigraphGraph(self)
-    return self._ox_graph
 
-  # Backwards-compatibility alias
-  as_rdflib_graph = as_sparql_graph
+  def as_rdflib_graph(self):
+    # Bridge the quadstore to rdflib: returns a standard rdflib.Graph backed by
+    # the triplelite store, so any store-agnostic SPARQL tool (e.g. omny's
+    # run_rdflib) can query Owlready3's live data in-process. Use
+    # .query()/.query_owlready() on it for SPARQL. Requires the 'rdflib' extra.
+    if self._rdflib_store is None:
+      try:
+        from owlready3.rdflib_store import TripleLiteRDFlibStore
+      except ImportError as e:
+        raise OwlReadyError("* Owlready3 * rdflib is required for as_rdflib_graph() / sparql(); "
+                            "install it with:  pip install owlready3[rdflib]") from e
+      self._rdflib_store = TripleLiteRDFlibStore(self)
+    return self._rdflib_store.main_graph
 
-  def sparql_query(self, sparql, params=None, *args, **kargs):
-    # Handle ??1, ??2, … parameter substitution (owlready2 convention).
-    # params is a list whose i-th element replaces ??{i+1} in the query.
-    if params:
-      import re as _re
-      def _sub(m):
-        idx = int(m.group(1)) - 1
-        if idx < 0 or idx >= len(params):
-          return m.group(0)
-        p = params[idx]
-        iri = p.iri if hasattr(p, "iri") else str(p)
-        return "<%s>" % iri
-      sparql = _re.sub(r'\?\?(\d+)', _sub, sparql)
-    yield from self.as_sparql_graph().query_owlready(sparql, *args, **kargs)
-    
-      
+  def _substitute_sparql_params(self, query, params):
+    # Owlready convention: ??1, ??2, … are replaced by params[0], params[1], …
+    # (entities by their <IRI>, strings as quoted literals, others verbatim).
+    if not params: return query
+    import re as _re
+    def _sub(m):
+      idx = int(m.group(1)) - 1
+      if (idx < 0) or (idx >= len(params)): return m.group(0)
+      p = params[idx]
+      if hasattr(p, "iri"):     return "<%s>" % p.iri
+      if isinstance(p, str):    return '"%s"' % p.replace("\\", "\\\\").replace('"', '\\"')
+      return str(p)
+    return _re.sub(r"\?\?(\d+)", _sub, query)
+
+  def sparql_query(self, query, params = None):
+    # Run a SPARQL SELECT through rdflib's engine, yielding rows of owlready
+    # entities / Python values. For ASK / CONSTRUCT / UPDATE, use World.sparql().
+    query = self._substitute_sparql_params(query, params)
+    yield from self.as_rdflib_graph().query_owlready(query)
+
+  def sparql(self, query, params = None):
+    # Full SPARQL over the quadstore via rdflib's engine. Returns, by query form:
+    #   SELECT               -> list of rows (owlready entities / Python values)
+    #   ASK                  -> bool
+    #   CONSTRUCT / DESCRIBE -> an rdflib.Graph of the result triples
+    #   UPDATE               -> None (changes written to the quadstore; INSERT
+    #                           must run inside a `with onto:` block, which fixes
+    #                           the target ontology for the new triples)
+    query = self._substitute_sparql_params(query, params)
+    g = self.as_rdflib_graph()
+    import re as _re
+    head = _re.sub(r"(?im)^\s*(?:PREFIX|BASE)\b.*$", "", query)   # drop PREFIX/BASE
+    head = _re.sub(r"#.*",                          "", head)     # drop comments
+    m = _re.search(r"\b(SELECT|ASK|CONSTRUCT|DESCRIBE|INSERT|DELETE|LOAD|CLEAR|CREATE|DROP|ADD|MOVE|COPY|WITH)\b", head, _re.IGNORECASE)
+    if m and (m.group(1).upper() in ("INSERT", "DELETE", "LOAD", "CLEAR", "CREATE", "DROP", "ADD", "MOVE", "COPY", "WITH")):
+      g.update(query)
+      return None
+    result = g.query(query)
+    if   result.type == "ASK":                     return bool(result)
+    elif result.type in ("CONSTRUCT", "DESCRIBE"): return result.graph
+    else:                                          return [[g._rdflib_2_owlready(t) for t in row] for row in result]
+
   def get_ontology(self, base_iri):
     if (not base_iri.endswith("/")) and (not base_iri.endswith("#")):
       if   ("%s#" % base_iri) in self.ontologies: base_iri = base_iri = "%s#" % base_iri
@@ -589,7 +586,7 @@ class World(_GraphManager):
         if not trace is None:
             if storid in trace:
               s = "\n  ".join([(i if i < 0 else self._unabbreviate(i)) for i in trace[trace.index(storid):]])
-              print("* Owlready2 * Warning: ignoring cyclic subclass of/subproperty of, involving:\n  %s\n" % s, file = sys.stderr)
+              print("* Owlready3 * Warning: ignoring cyclic subclass of/subproperty of, involving:\n  %s\n" % s, file = sys.stderr)
               return None
             trace = (*trace, storid)
             
@@ -638,7 +635,7 @@ class World(_GraphManager):
           entity = ObjectPropertyClass(name, types or (ObjectProperty,), { "namespace" : namespace, "is_a" : is_a_entities, "storid" : storid } )
         except TypeError as e:
           if e.args[0].startswith("metaclass conflict"):
-            print("* Owlready2 * WARNING: ObjectProperty %s belongs to more than one entity types: %s; I'm trying to fix it..." % (full_iri, list(types) + is_a_entities), file = sys.stderr)
+            print("* Owlready3 * WARNING: ObjectProperty %s belongs to more than one entity types: %s; I'm trying to fix it..." % (full_iri, list(types) + is_a_entities), file = sys.stderr)
             is_a_entities = [t for t in is_a_entities if issubclass_python(t, ObjectProperty)]
             try:
               entity = ObjectPropertyClass(name, types or (ObjectProperty,), { "namespace" : namespace, "is_a" : is_a_entities, "storid" : storid } )
@@ -651,7 +648,7 @@ class World(_GraphManager):
           entity = DataPropertyClass(name, types or (DataProperty,), { "namespace" : namespace, "is_a" : is_a_entities, "storid" : storid } )
         except TypeError as e:
           if e.args[0].startswith("metaclass conflict"):
-            print("* Owlready2 * WARNING: DataProperty %s belongs to more than one entity types: %s; I'm trying to fix it..." % (full_iri, list(types) + is_a_entities), file = sys.stderr)
+            print("* Owlready3 * WARNING: DataProperty %s belongs to more than one entity types: %s; I'm trying to fix it..." % (full_iri, list(types) + is_a_entities), file = sys.stderr)
             is_a_entities = [t for t in is_a_entities if issubclass_python(t, DataProperty)]
             #entity = DataPropertyClass(name, types or (DataProperty,), { "namespace" : namespace, "is_a" : is_a_entities, "storid" : storid } )
             entity = DataPropertyClass(name, (DataProperty,), { "namespace" : namespace, "is_a" : is_a_entities, "storid" : storid } )
@@ -662,7 +659,7 @@ class World(_GraphManager):
           entity = AnnotationPropertyClass(name, types or (AnnotationProperty,), { "namespace" : namespace, "is_a" : is_a_entities, "storid" : storid } )
         except TypeError as e:
           if e.args[0].startswith("metaclass conflict"):
-            print("* Owlready2 * WARNING: AnnotationProperty %s belongs to more than one entity types: %s; I'm trying to fix it..." % (full_iri, list(types) + is_a_entities), file = sys.stderr)
+            print("* Owlready3 * WARNING: AnnotationProperty %s belongs to more than one entity types: %s; I'm trying to fix it..." % (full_iri, list(types) + is_a_entities), file = sys.stderr)
             is_a_entities = [t for t in is_a_entities if issubclass_python(t, AnnotationProperty)]
             entity = AnnotationPropertyClass(name, (AnnotationProperty,), { "namespace" : namespace, "is_a" : is_a_entities, "storid" : storid } )
           
@@ -712,16 +709,16 @@ class Ontology(Namespace, _GraphManager):
         self._load_properties()
         
     world.ontologies[self.base_iri] = self
-    if _LOG_LEVEL: print("* Owlready2 * Creating new ontology %s <%s>." % (self.name, self.base_iri), file = sys.stderr)
+    if (not world._rdflib_store is None) and (not self.graph is None):
+      world._rdflib_store._add_onto(self)   # keep the rdflib bridge's context graphs in sync
+    if _LOG_LEVEL: print("* Owlready3 * Creating new ontology %s <%s>." % (self.name, self.base_iri), file = sys.stderr)
     
     if (not LOADING) and (not self.graph is None):
       if not self._has_obj_triple_spo(self.storid, rdf_type, owl_ontology):
         if self.world.graph: self.world.graph.acquire_write_lock()
         self._add_obj_triple_spo(self.storid, rdf_type, owl_ontology)
         if self.world.graph: self.world.graph.release_write_lock()
-        
-    pass  # pyoxigraph_store builds the store fresh on each query; no sync needed
-    
+
   def destroy(self):
     self.world.graph.acquire_write_lock()
     del self.world.ontologies[self.base_iri]
@@ -790,23 +787,23 @@ class Ontology(Namespace, _GraphManager):
     new_base_iri = None
     if f.startswith("http:") or f.startswith("https:"):
       if  reload or (self.graph.get_last_update_time() == 0.0): # Never loaded
-        if _LOG_LEVEL: print("* Owlready2 *     ...loading ontology %s from %s..." % (self.name, f), file = sys.stderr)
+        if _LOG_LEVEL: print("* Owlready3 *     ...loading ontology %s from %s..." % (self.name, f), file = sys.stderr)
         try:     fileobj = urllib.request.urlopen(f)
         except:  raise OwlReadyOntologyParsingError("Cannot download '%s'!" % f)
         try:     new_base_iri = self.graph.parse(fileobj, default_base = self.base_iri, **args)
         finally: fileobj.close()
     elif fileobj:
-      if _LOG_LEVEL: print("* Owlready2 *     ...loading ontology %s from %s..." % (self.name, getattr(fileobj, "name", "") or getattr(fileobj, "url", "???")), file = sys.stderr)
+      if _LOG_LEVEL: print("* Owlready3 *     ...loading ontology %s from %s..." % (self.name, getattr(fileobj, "name", "") or getattr(fileobj, "url", "???")), file = sys.stderr)
       try:     new_base_iri = self.graph.parse(fileobj, default_base = self.base_iri, **args)
       finally: fileobj.close()
     else:
       if reload or (reload_if_newer and (os.path.getmtime(f) > self.graph.get_last_update_time())) or (self.graph.get_last_update_time() == 0.0):
-        if _LOG_LEVEL: print("* Owlready2 *     ...loading ontology %s from %s..." % (self.name, f), file = sys.stderr)
+        if _LOG_LEVEL: print("* Owlready3 *     ...loading ontology %s from %s..." % (self.name, f), file = sys.stderr)
         fileobj = open(f, "rb")
         try:     new_base_iri = self.graph.parse(fileobj, default_base = self.base_iri, **args)
         finally: fileobj.close()
       else:
-        if _LOG_LEVEL: print("* Owlready2 *     ...loading ontology %s (cached)..." % self.name, file = sys.stderr)
+        if _LOG_LEVEL: print("* Owlready3 *     ...loading ontology %s (cached)..." % self.name, file = sys.stderr)
         
     self.loaded = True
 
@@ -839,19 +836,19 @@ class Ontology(Namespace, _GraphManager):
     global default_world, IRIS, get_ontology
     for module, d in self._get_data_triples_sp_od(self.storid, owlready_python_module):
       module = from_literal(module, d)
-      if _LOG_LEVEL: print("* Owlready2 *     ...importing Python module %s required by ontology %s..." % (module, self.name), file = sys.stderr)
+      if _LOG_LEVEL: print("* Owlready3 *     ...importing Python module %s required by ontology %s..." % (module, self.name), file = sys.stderr)
 
-      import owlready2
-      saved = owlready2.default_world, owlready2.IRIS, owlready2.get_ontology, owlready2.get_namespace
+      import owlready3
+      saved = owlready3.default_world, owlready3.IRIS, owlready3.get_ontology, owlready3.get_namespace
       try:
-        owlready2.default_world, owlready2.IRIS, owlready2.get_ontology = self.world, self.world, self.world.get_ontology
+        owlready3.default_world, owlready3.IRIS, owlready3.get_ontology = self.world, self.world, self.world.get_ontology
         importlib.__import__(module)
       except ImportError:
-        print("\n* Owlready2 * ERROR: cannot import Python module %s!\n" % module, file = sys.stderr)
+        print("\n* Owlready3 * ERROR: cannot import Python module %s!\n" % module, file = sys.stderr)
         print("\n\n\n", file = sys.stderr)
         raise
       finally:
-        owlready2.default_world, owlready2.IRIS, owlready2.get_ontology, owlready2.get_namespace = saved
+        owlready3.default_world, owlready3.IRIS, owlready3.get_ontology, owlready3.get_namespace = saved
     return self
   
   def _load_properties(self):
@@ -859,7 +856,7 @@ class Ontology(Namespace, _GraphManager):
     for prop in list(self.world._props.values()):
       if prop.namespace.world is owl_world: continue
       if prop._check_update(self) and _LOG_LEVEL:
-        print("* Owlready2 * Reseting property %s: new triples are now available." % prop)
+        print("* Owlready3 * Reseting property %s: new triples are now available." % prop)
         
     # Loads new props
     props = []
@@ -876,7 +873,7 @@ class Ontology(Namespace, _GraphManager):
         with LOADING: Prop.python_name = python_name_d[0]
         props.append("%s (%s)" % (Prop.python_name, Prop.name))
     if _LOG_LEVEL:
-      print("* Owlready2 *     ...%s properties found: %s" % (len(props), ", ".join(props)), file = sys.stderr)
+      print("* Owlready3 *     ...%s properties found: %s" % (len(props), ", ".join(props)), file = sys.stderr)
       
   
   def indirectly_imported_ontologies(self, already = None):
@@ -889,16 +886,16 @@ class Ontology(Namespace, _GraphManager):
   def save(self, file = None, format = "rdfxml", **kargs):
     if   file is None:
       file = _open_onto_file(self.base_iri, self.name, "wb")
-      if _LOG_LEVEL: print("* Owlready2 * Saving ontology %s to %s..." % (self.name, getattr(file, "name", "???")), file = sys.stderr)
+      if _LOG_LEVEL: print("* Owlready3 * Saving ontology %s to %s..." % (self.name, getattr(file, "name", "???")), file = sys.stderr)
       self.graph.save(file, format, **kargs)
       file.close()
     elif isinstance(file, str):
-      if _LOG_LEVEL: print("* Owlready2 * Saving ontology %s to %s..." % (self.name, file), file = sys.stderr)
+      if _LOG_LEVEL: print("* Owlready3 * Saving ontology %s to %s..." % (self.name, file), file = sys.stderr)
       file = open(file, "wb")
       self.graph.save(file, format, **kargs)
       file.close()
     else:
-      if _LOG_LEVEL: print("* Owlready2 * Saving ontology %s to %s..." % (self.name, getattr(file, "name", "???")), file = sys.stderr)
+      if _LOG_LEVEL: print("* Owlready3 * Saving ontology %s to %s..." % (self.name, getattr(file, "name", "???")), file = sys.stderr)
       self.graph.save(file, format, **kargs)
       
   def _add_obj_triple_spo(self, s, p, o):
@@ -913,7 +910,7 @@ class Ontology(Namespace, _GraphManager):
       if not s < 0: s = self._unabbreviate(s)
       if p: p = self._unabbreviate(p)
       if o > 0: o = self._unabbreviate(o)
-      print("* Owlready2 * ADD TRIPLE", s, p, o, file = sys.stderr)
+      print("* Owlready3 * ADD TRIPLE", s, p, o, file = sys.stderr)
       
   def _set_obj_triple_spo(self, s, p, o):
     #if CURRENT_NAMESPACES[-1] is None: self._set_obj_triple_raw_spo(s, p, o)
@@ -924,7 +921,7 @@ class Ontology(Namespace, _GraphManager):
       if not s < 0: s = self._unabbreviate(s)
       if p: p = self._unabbreviate(p)
       if o > 0: o = self._unabbreviate(o)
-      print("* Owlready2 * SET TRIPLE", s, p, o, file = sys.stderr)
+      print("* Owlready3 * SET TRIPLE", s, p, o, file = sys.stderr)
       
   def _add_data_triple_spod(self, s, p, o, d):
     #if CURRENT_NAMESPACES[-1] is None: self._add_data_triple_raw_spod(s, p, o, d)
@@ -935,7 +932,7 @@ class Ontology(Namespace, _GraphManager):
       if not s < 0: s = self._unabbreviate(s)
       if p: p = self._unabbreviate(p)
       if isinstance(d, str) and (not d.startswith("@")): d = self._unabbreviate(d)
-      print("* Owlready2 * ADD TRIPLE", s, p, o, d, file = sys.stderr)
+      print("* Owlready3 * ADD TRIPLE", s, p, o, d, file = sys.stderr)
       
   def _set_data_triple_spod(self, s, p, o, d):
     #if CURRENT_NAMESPACES[-1] is None: self._set_data_triple_raw_spod(s, p, o, d)
@@ -946,7 +943,7 @@ class Ontology(Namespace, _GraphManager):
       if not s < 0: s = self._unabbreviate(s)
       if p: p = self._unabbreviate(p)
       if isinstance(d, str) and (not d.startswith("@")): d = self._unabbreviate(d)
-      print("* Owlready2 * SET TRIPLE", s, p, o, d, file = sys.stderr)
+      print("* Owlready3 * SET TRIPLE", s, p, o, d, file = sys.stderr)
     
   # Will be replaced by the graph methods
   def _add_obj_triple_raw_spo(self, subject, predicate, object): pass
@@ -1191,14 +1188,6 @@ def _get_onto_file(base_iri, name, mode = "r", only_local = False):
   raise FileNotFoundError
 
 
-# def convert_with_owlapi(orig, format = "nt"):
-#   import tempfile
-#   fileno, filename = tempfile.mkstemp()
-#   command = [owlready2.JAVA_EXE, "-cp", owlready2.reasoning._HERMIT_CLASSPATH, "Save", orig, format, filename]
-#   print(" ".join(command))
-#   output = subprocess.check_output(command, stderr = subprocess.STDOUT)
-#   return filename
-  
 
 
 owl_world = World(filename = None)

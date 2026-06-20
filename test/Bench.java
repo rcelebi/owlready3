@@ -1,9 +1,9 @@
 /*
-cd ./owlready2/hermit
+cd ./owlready3/hermit
 /usr/lib/jvm/java-7-openjdk/bin/javac -cp .:HermiT.jar ./org/semanticweb/HermiT/cli/CommandLine.java ./org/semanticweb/HermiT/Reasoner.java ./org/semanticweb/HermiT/hierarchy/HierarchyDumperFSS.java ./org/semanticweb/HermiT/hierarchy/InstanceManager.java
 
-javac -cp ./antibio_arcenciel/owlready_cas_dut_1/owlapi-3.4.3.jar ./owlready2/test/Bench.java
-java -cp ./antibio_arcenciel/owlready_cas_dut_1/owlapi-3.4.3.jar:./owlready2/test Bench > /dev/null
+javac -cp ./antibio_arcenciel/owlready_cas_dut_1/owlapi-3.4.3.jar ./owlready3/test/Bench.java
+java -cp ./antibio_arcenciel/owlready_cas_dut_1/owlapi-3.4.3.jar:./owlready3/test Bench > /dev/null
 
 Loading 11.229
 Listing 4.528
@@ -35,7 +35,7 @@ class Bench {
     //IRI iri = IRI.create("file:///home/jiba/telechargements/base_med/obi.owl");
     //IRI iri = IRI.create("file:///home/jiba/telechargements/base_med/vto.owl");
     //IRI iri = IRI.create("file:///home/jiba/telechargements/base_med/uberon.owl");
-    //IRI iri = IRI.create("file:///home/jiba/src/owlready2/test/test.owl");
+    //IRI iri = IRI.create("file:///home/jiba/src/owlready3/test/test.owl");
     OWLOntology o = m.loadOntologyFromOntologyDocument(iri);
     
     t = (new Date().getTime()) - t;

@@ -7,7 +7,7 @@ This section summarizes the major differences between Owlready version 1 and 2.
 Creation of Classes, Properties and Individuals
 -----------------------------------------------
 
-The 'ontology' parameters is now called 'namespace' in Owlready2. It accepts a namespace or an ontology.
+The 'ontology' parameters is now called 'namespace' in Owlready3. It accepts a namespace or an ontology.
 
 Owlready 1:
 

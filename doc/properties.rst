@@ -15,7 +15,7 @@ The following example creates two Classes, Drug and Ingredient, and then an Obje
 
 ::
 
-   >>> from owlready2 import *
+   >>> from owlready3 import *
    
    >>> onto = get_ontology("http://test.org/onto.owl")
 
@@ -87,7 +87,7 @@ The attribute contains a list of the subjects:
    [onto.acetaminophen]
 
 This list can be modifed *in place* or set to a new value;
-Owlready2 will automatically add or delete RDF triples in the quadstore as needed:
+Owlready3 will automatically add or delete RDF triples in the quadstore as needed:
 
 ::
 
@@ -103,14 +103,14 @@ Data Property
 -------------
 
 Data Properties are Properties with a data type in their range. The following data types
-are currently supported by Owlready2:
+are currently supported by Owlready3:
 
  * int
  * float
  * bool
  * str (string)
- * owlready2.normstr (normalized string, a single-line string)
- * owlready2.locstr  (localized string, a string with a language associated)
+ * owlready3.normstr (normalized string, a single-line string)
+ * owlready3.locstr  (localized string, a string with a language associated)
  * datetime.date
  * datetime.time
  * datetime.datetime
@@ -141,7 +141,7 @@ Two properties are inverse if they express the same meaning, but in a reversed w
 For example the 'is_ingredient_of' Property is the inverse of the 'has_for_ingredient' Property created above:
 saying "a drug A has for ingredient B" is equivalent to "B is ingredient of drug A".
 
-In Owlready2, inverse Properties are defined using the 'inverse_property' attribute.
+In Owlready3, inverse Properties are defined using the 'inverse_property' attribute.
 
 ::
 
@@ -206,9 +206,9 @@ a single value instead of a list of values. If no value is defined, they returns
    >>> print(my_drug2.has_for_cost)
    None
 
-Owlready2 is also able to guess when a Property is functional with respect to a given class.
-In the following example, the 'prop' Property is not functional, but Owlready2 guesses that, for Individuals
-of Class B, there can be only a single value. Consequently, Owlready2 considers prop as functional
+Owlready3 is also able to guess when a Property is functional with respect to a given class.
+In the following example, the 'prop' Property is not functional, but Owlready3 guesses that, for Individuals
+of Class B, there can be only a single value. Consequently, Owlready3 considers prop as functional
 for Class B.
 
 ::
@@ -244,14 +244,14 @@ A subproperty can be created by subclassing a Property class.
 
 .. note::
    
-   Owlready2 currently does not automatically update parent properties when a child property is defined.
+   Owlready3 currently does not automatically update parent properties when a child property is defined.
    This might be added in a future version, though.
 
    
 Obtaining indirect relations (considering subproperty, transitivity, etc)
 -------------------------------------------------------------------------
 
-Property name can be prefixed by "INDIRECT_" to obtain all indirectly
+Property name can be prefixed by ``INDIRECT_`` to obtain all indirectly
 related entities. It takes into account:
 
  * transitive, symmetric and reflexive properties,
@@ -286,8 +286,8 @@ In ontologies, properties are usually given long names, *e.g.* "has_for_ingredie
 languages like Python, shorter attribute names are more common, *e.g.* "ingredients" (notice also the use
 of a plural form, since it is actually a list of several ingredients).
 
-Owlready2 allows to rename Properties with more Pythonic name through the 'python_name' annotation (defined
-in the Owlready ontology, file 'owlready2/owlready_ontology.owl' in Owlready2 sources, URI http://www.lesfleursdunormal.fr/static/_downloads/owlready_ontology.owl):
+Owlready3 allows to rename Properties with more Pythonic name through the 'python_name' annotation (defined
+in the Owlready ontology, file 'owlready3/owlready_ontology.owl' in Owlready3 sources, URI http://www.lesfleursdunormal.fr/static/_downloads/owlready_ontology.owl):
 
 ::
 
@@ -307,7 +307,7 @@ in the Owlready ontology, file 'owlready2/owlready_ontology.owl' in Owlready2 so
 For more information about the use of annotations, see :doc:`annotations`.
 
 The 'python_name' annotations can also be defined in ontology editors like Protégé, by importing the Owlready
-ontology (file 'owlready2/owlready_ontology.owl' in Owlready2 sources, URI http://www.lesfleursdunormal.fr/static/_downloads/owlready_ontology.owl).
+ontology (file 'owlready3/owlready_ontology.owl' in Owlready3 sources, URI http://www.lesfleursdunormal.fr/static/_downloads/owlready_ontology.owl).
 
 
 Getting relation instances

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Owlready2
+# Owlready3
 # Copyright (C) 2013-2019 Jean-Baptiste LAMY
 # LIMICS (Laboratoire d'informatique médicale et d'ingénierie des connaissances en santé), UMR_S 1142
 # University Paris 13, Sorbonne paris-Cité, Bobigny, France
@@ -17,12 +17,12 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from owlready2.namespace       import *
-from owlready2.entity          import *
-from owlready2.entity          import _inherited_property_value_restrictions
-from owlready2.prop            import *
-from owlready2.individual      import *
-from owlready2.class_construct import *
+from owlready3.namespace       import *
+from owlready3.entity          import *
+from owlready3.entity          import _inherited_property_value_restrictions
+from owlready3.prop            import *
+from owlready3.individual      import *
+from owlready3.class_construct import *
 
 
 def close_world(self, Properties = None, close_instance_list = True, recursive = True):

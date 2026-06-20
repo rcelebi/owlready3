@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Owlready2
+# Owlready3
 # Copyright (C) 2013-2019 Jean-Baptiste LAMY
 # LIMICS (Laboratoire d'informatique médicale et d'ingénierie des connaissances en santé), UMR_S 1142
 # University Paris 13, Sorbonne paris-Cité, Bobigny, France
@@ -17,10 +17,10 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import owlready2
-from owlready2.base      import *
-from owlready2.namespace import *
-from owlready2.namespace import _cache_entity
+import owlready3
+from owlready3.base      import *
+from owlready3.namespace import *
+from owlready3.namespace import _cache_entity
 
 
 
@@ -286,8 +286,8 @@ class EntityClass(type):
     s = set()
     if Class.namespace.world is owl_world:
       if world is None:
-        import owlready2
-        world = owlready2.default_world
+        import owlready3
+        world = owlready3.default_world
       Class._fill_descendants(s, include_self, only_loaded, world, None)
     else:
       Class._fill_descendants(s, include_self, only_loaded, Class.namespace.world, Class.namespace.ontology)
@@ -339,8 +339,8 @@ class EntityClass(type):
   def subclasses(Class, only_loaded = False, world = None):
     if Class is Thing:
       if world is None:
-        import owlready2
-        world = owlready2.default_world
+        import owlready3
+        world = owlready3.default_world
         
       for x, in world.graph.db.execute(
     """SELECT q1.s FROM objs q1 WHERE q1.s > 0 and q1.p = ? AND q1.o = ?
@@ -477,16 +477,16 @@ class ThingClass(EntityClass):
       
   def instances(Class, world = None):
     if Class.namespace.world is owl_world:
-      import owlready2
-      world = (world or owlready2.default_world).world
+      import owlready3
+      world = (world or owlready3.default_world).world
       if Class is Thing: return world.individuals()
       return world.search(type = Class)
     return Class.namespace.world.search(type = Class)
   
   def direct_instances(Class, world = None):
     if Class.namespace.world is owl_world:
-      import owlready2
-      world = world or owlready2.default_world
+      import owlready3
+      world = world or owlready3.default_world
       return [world._get_by_storid(s, None, Thing) for s in world._get_obj_triples_po_s(rdf_type, Class.storid)]
     return [Class.namespace.world._get_by_storid(s, None, Thing) for s in Class.namespace.world._get_obj_triples_po_s(rdf_type, Class.storid)]
   
@@ -523,12 +523,12 @@ class ThingClass(EntityClass):
   def __invert__(a): return Not(a)
   
   def __rshift__(Domain, Range):
-    import owlready2.prop
-    owlready2.prop._NEXT_DOMAIN_RANGE.set((Domain, Range))
+    import owlready3.prop
+    owlready3.prop._NEXT_DOMAIN_RANGE.set((Domain, Range))
     if isinstance(Range, ThingClass) or isinstance(Range, Construct):
-      return owlready2.prop.ObjectProperty
+      return owlready3.prop.ObjectProperty
     else:
-      return owlready2.prop.DataProperty
+      return owlready3.prop.DataProperty
     
   def get_defined_class(Class):
     v = Class.__dict__.get("__defined_class", None)

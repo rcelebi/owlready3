@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Owlready2
+# Owlready3
 # Copyright (C) 2017-2019 Jean-Baptiste LAMY
 # LIMICS (Laboratoire d'informatique médicale et d'ingénierie des connaissances en santé), UMR_S 1142
 # University Paris 13, Sorbonne paris-Cité, Bobigny, France
@@ -20,8 +20,8 @@
 import rdflib, rdflib.store
 from rdflib import URIRef, BNode, Literal
 
-import owlready2.triplelite, owlready2.namespace
-from owlready2.base import *
+import owlready3.triplelite, owlready3.namespace
+from owlready3.base import *
 
 class TripleLiteRDFlibStore(rdflib.store.Store):
   context_aware = True
@@ -96,10 +96,10 @@ class TripleLiteRDFlibStore(rdflib.store.Store):
   def add(self, xxx_todo_changeme, context, quoted = False):
     s,p,o,d = self._rdflib_2_owlready(xxx_todo_changeme)
     
-    if isinstance(context.triplelite, owlready2.triplelite.SubGraph):
+    if isinstance(context.triplelite, owlready3.triplelite.SubGraph):
       triplelite = context.triplelite
     else:
-      l = owlready2.namespace.CURRENT_NAMESPACES.get()
+      l = owlready3.namespace.CURRENT_NAMESPACES.get()
       if not l: raise ValueError("Cannot add triples to a graph outside a 'with' block. Please start a 'with' block to indicate in which ontology the new triple is added.")
       triplelite = l[-1].ontology.graph
       
@@ -111,10 +111,7 @@ class TripleLiteRDFlibStore(rdflib.store.Store):
       if   prop:
         try: delattr(sub, prop.python_name)
         except: pass
-        
-      #elif isinstance(sub, owlready2.class_construct.Construct):
-      #  self._bn_needing_update.append((triplelite.onto, s))
-      
+
       elif d is None:
         obj = self.world._load_by_storid(o)
         if not obj is None:
@@ -269,14 +266,7 @@ class TripleLiteRDFlibGraph(rdflib.Graph):
     for line in r:
       line2 = [self._rdflib_2_owlready(i) for i in line]
       yield line2
-      
-  # def update(self, query, *args, **kargs):
-  #   self.store._bn_needing_update = set()
-  #   r = rdflib.Graph.update(self, query, *args, **kargs)
-  #   for onto, bn in self.store._bn_needing_update:
-  #     onto._reload_bnode(bn)
-  #   return r
-  
+
   def _rdflib_2_owlready(self, o):
     if   isinstance(o, rdflib.term.URIRef ): o = self.store.world[str(o)]
     elif isinstance(o, rdflib.term.BNode  ): o = (self.onto or self.store.world)._parse_bnode(o)

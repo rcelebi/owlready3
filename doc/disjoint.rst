@@ -17,7 +17,7 @@ are disjoint (yes, we need to specify that explicitely -- sometimes ontologies s
 
 ::
 
-   >>> from owlready2 import *
+   >>> from owlready3 import *
    
    >>> onto = get_ontology("http://test.org/onto.owl")
    
@@ -55,7 +55,7 @@ to state explicitely that acetaminophen and aspirin are not the same!)
 
 .. note::
 
-   In Owlready2, AllDifferent is actually the same function as AllDisjoint -- the exact meaning depends on the
+   In Owlready3, AllDifferent is actually the same function as AllDisjoint -- the exact meaning depends on the
    parameters (AllDisjoint if you provide Classes, AllDifferent if you provide Instances,
    and disjoint Properties if you provide Properties).
    
@@ -76,7 +76,7 @@ The 'entities' attribute of an AllDisjoint is writable, so you can modify the Al
 or removing entities.
 
 OWL also provides the 'disjointWith' and 'propertyDisjointWith' relations for pairwise disjoints (involving
-only two elements). Owlready2 exposes **all** disjoints as AllDisjoints, *including* those declared with 
+only two elements). Owlready3 exposes **all** disjoints as AllDisjoints, *including* those declared with 
 the 'disjointWith' or 'propertyDisjointWith' relations. In the quad store (or when saving OWL files),
 disjoints involving 2 entities are defined using the 'disjointWith' or 'propertyDisjointWith' relations,
 while others are defined using AllDisjoint or AllDifferent.
@@ -109,7 +109,7 @@ state it explicitely using a restriction (see :doc:`restriction`):
 Notice that we used OneOf() to 'turn' the acetaminophen Individual into a Class that we can use in the restriction.
 
 You'll quickly find that the open world assumption often leads to tedious and long lists
-of AllDifference and Restrictions. Hopefully, Owlready2 provides the close_world() function for automatically
+of AllDifference and Restrictions. Hopefully, Owlready3 provides the close_world() function for automatically
 'closing' an Individual. close_world() will automatically add ONLY restrictions as needed; it accepts an
 optional parameter: a list of the Properties to 'close' (defaults to all Properties whose domain is
 compatible with the Individual).

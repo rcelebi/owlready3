@@ -8,7 +8,7 @@ Restrictions on a Property
 
 ::
 
-   >>> from owlready2 import *
+   >>> from owlready3 import *
    
    >>> onto = get_ontology("http://test.org/onto.owl")
    
@@ -78,7 +78,7 @@ as in the two following examples:
    >>> MyClass.equivalent_to.append(my_property.some(Value))
 
 
-Restrictions can be modified *in place* (Owlready2 updates the quadstore automatically), using the
+Restrictions can be modified *in place* (Owlready3 updates the quadstore automatically), using the
 following attributes: .property, .type (SOME, ONLY, MIN, MAX, EXACTLY or VALUE), .cardinality
 and .value (a Class, an Individual, a class contruct or another restriction).
 

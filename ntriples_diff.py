@@ -17,15 +17,15 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#cp -f ./owlready2/test/test.owl /tmp/t.owl
-#cp -f ./owlready2/test/test_inverse.owl /tmp/t.owl
-#cp -f ./owlready2/test/test_reasoning.owl /tmp/t.owl
-#cp -f ./owlready2/test/test_breakline.owl /tmp/t.owl
+#cp -f ./owlready3/test/test.owl /tmp/t.owl
+#cp -f ./owlready3/test/test_inverse.owl /tmp/t.owl
+#cp -f ./owlready3/test/test_reasoning.owl /tmp/t.owl
+#cp -f ./owlready3/test/test_breakline.owl /tmp/t.owl
 #cp -f ~/telechargements/base_med/obi.owl /tmp/t.owl
 
 #rapper /tmp/t.owl > /tmp/rap.nt   ; python -c 'b = open("/tmp/rap.nt", "rb").read(); lb = b.split(b"\n"); ls = [i.replace(b"\\" + b"\"", b"\\\\" + b"\"").decode("unicode-escape").replace("\n", "\\n") for i in lb]; s = "\n".join(ls); open("/tmp/rap2.nt", "w").write(s)'
-#python ./owlready2/rdfxml_2_ntriples.py /tmp/t.owl > /tmp/py.nt
-#python ./owlready2/ntriples_diff.py /tmp/rap.nt /tmp/py.nt --short
+#python ./owlready3/rdfxml_2_ntriples.py /tmp/t.owl > /tmp/py.nt
+#python ./owlready3/ntriples_diff.py /tmp/rap.nt /tmp/py.nt --short
 
 """ntriples_diff.py
 
@@ -43,7 +43,7 @@ Options:
   --short : shortify IRI and literal (more Human readable).
 """
 
-import sys, os, warnings
+import sys
 
 
 def shortify(triples):

@@ -19,7 +19,7 @@
      xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
      xmlns:swrlb="http://www.w3.org/2003/11/swrlb#"
      xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
-    <owl:Ontology rdf:about="file:///home/jiba/src/owlready2/test/test_rule.owl"/>
+    <owl:Ontology rdf:about="file:///home/jiba/src/owlready3/test/test_rule.owl"/>
     
 
 
@@ -34,9 +34,9 @@
     
 
 
-    <!-- file:///home/jiba/src/owlready2/test/test_rule.owl#prop -->
+    <!-- file:///home/jiba/src/owlready3/test/test_rule.owl#prop -->
 
-    <owl:ObjectProperty rdf:about="file:///home/jiba/src/owlready2/test/test_rule.owl#prop"/>
+    <owl:ObjectProperty rdf:about="file:///home/jiba/src/owlready3/test/test_rule.owl#prop"/>
     
 
 
@@ -51,9 +51,9 @@
     
 
 
-    <!-- file:///home/jiba/src/owlready2/test/test_rule.owl#data_prop -->
+    <!-- file:///home/jiba/src/owlready3/test/test_rule.owl#data_prop -->
 
-    <owl:DatatypeProperty rdf:about="file:///home/jiba/src/owlready2/test/test_rule.owl#data_prop"/>
+    <owl:DatatypeProperty rdf:about="file:///home/jiba/src/owlready3/test/test_rule.owl#data_prop"/>
     
 
 
@@ -68,15 +68,15 @@
     
 
 
-    <!-- file:///home/jiba/src/owlready2/test/test_rule.owl#E -->
+    <!-- file:///home/jiba/src/owlready3/test/test_rule.owl#E -->
 
-    <owl:Class rdf:about="file:///home/jiba/src/owlready2/test/test_rule.owl#E"/>
+    <owl:Class rdf:about="file:///home/jiba/src/owlready3/test/test_rule.owl#E"/>
     
 
 
-    <!-- file:///home/jiba/src/owlready2/test/test_rule.owl#S -->
+    <!-- file:///home/jiba/src/owlready3/test/test_rule.owl#S -->
 
-    <owl:Class rdf:about="file:///home/jiba/src/owlready2/test/test_rule.owl#S"/>
+    <owl:Class rdf:about="file:///home/jiba/src/owlready3/test/test_rule.owl#S"/>
     
 
 
@@ -91,17 +91,17 @@
     
 
 
-    <!-- file:///home/jiba/src/owlready2/test/test_rule.owl#e -->
+    <!-- file:///home/jiba/src/owlready3/test/test_rule.owl#e -->
 
-    <owl:NamedIndividual rdf:about="file:///home/jiba/src/owlready2/test/test_rule.owl#e">
-        <rdf:type rdf:resource="file:///home/jiba/src/owlready2/test/test_rule.owl#E"/>
+    <owl:NamedIndividual rdf:about="file:///home/jiba/src/owlready3/test/test_rule.owl#e">
+        <rdf:type rdf:resource="file:///home/jiba/src/owlready3/test/test_rule.owl#E"/>
     </owl:NamedIndividual>
     
 
 
-    <!-- file:///home/jiba/src/owlready2/test/test_rule.owl#obj -->
+    <!-- file:///home/jiba/src/owlready3/test/test_rule.owl#obj -->
 
-    <owl:Thing rdf:about="file:///home/jiba/src/owlready2/test/test_rule.owl#obj">
+    <owl:Thing rdf:about="file:///home/jiba/src/owlready3/test/test_rule.owl#obj">
         <rdf:type rdf:resource="&owl;NamedIndividual"/>
     </owl:Thing>
     
@@ -127,7 +127,7 @@
                 <rdf:first>
                     <rdf:Description>
                         <rdf:type rdf:resource="&swrl;ClassAtom"/>
-                        <swrl:classPredicate rdf:resource="file:///home/jiba/src/owlready2/test/test_rule.owl#E"/>
+                        <swrl:classPredicate rdf:resource="file:///home/jiba/src/owlready3/test/test_rule.owl#E"/>
                         <swrl:argument1 rdf:resource="urn:swrl#x"/>
                     </rdf:Description>
                 </rdf:first>
@@ -140,7 +140,7 @@
                 <rdf:first>
                     <rdf:Description>
                         <rdf:type rdf:resource="&swrl;ClassAtom"/>
-                        <swrl:classPredicate rdf:resource="file:///home/jiba/src/owlready2/test/test_rule.owl#S"/>
+                        <swrl:classPredicate rdf:resource="file:///home/jiba/src/owlready3/test/test_rule.owl#S"/>
                         <swrl:argument1 rdf:resource="urn:swrl#x"/>
                     </rdf:Description>
                 </rdf:first>
@@ -156,8 +156,8 @@
                 <rdf:first>
                     <rdf:Description>
                         <rdf:type rdf:resource="&swrl;IndividualPropertyAtom"/>
-                        <swrl:argument2 rdf:resource="file:///home/jiba/src/owlready2/test/test_rule.owl#obj"/>
-                        <swrl:propertyPredicate rdf:resource="file:///home/jiba/src/owlready2/test/test_rule.owl#prop"/>
+                        <swrl:argument2 rdf:resource="file:///home/jiba/src/owlready3/test/test_rule.owl#obj"/>
+                        <swrl:propertyPredicate rdf:resource="file:///home/jiba/src/owlready3/test/test_rule.owl#prop"/>
                         <swrl:argument1 rdf:resource="urn:swrl#x"/>
                     </rdf:Description>
                 </rdf:first>
@@ -170,7 +170,7 @@
                 <rdf:first>
                     <rdf:Description>
                         <rdf:type rdf:resource="&swrl;ClassAtom"/>
-                        <swrl:classPredicate rdf:resource="file:///home/jiba/src/owlready2/test/test_rule.owl#E"/>
+                        <swrl:classPredicate rdf:resource="file:///home/jiba/src/owlready3/test/test_rule.owl#E"/>
                         <swrl:argument1 rdf:resource="urn:swrl#x"/>
                     </rdf:Description>
                 </rdf:first>
@@ -187,7 +187,7 @@
                     <rdf:Description>
                         <rdf:type rdf:resource="&swrl;DatavaluedPropertyAtom"/>
                         <swrl:argument2 rdf:datatype="&xsd;double">1.0</swrl:argument2>
-                        <swrl:propertyPredicate rdf:resource="file:///home/jiba/src/owlready2/test/test_rule.owl#data_prop"/>
+                        <swrl:propertyPredicate rdf:resource="file:///home/jiba/src/owlready3/test/test_rule.owl#data_prop"/>
                         <swrl:argument1 rdf:resource="urn:swrl#x"/>
                     </rdf:Description>
                 </rdf:first>
@@ -200,7 +200,7 @@
                 <rdf:first>
                     <rdf:Description>
                         <rdf:type rdf:resource="&swrl;ClassAtom"/>
-                        <swrl:classPredicate rdf:resource="file:///home/jiba/src/owlready2/test/test_rule.owl#E"/>
+                        <swrl:classPredicate rdf:resource="file:///home/jiba/src/owlready3/test/test_rule.owl#E"/>
                         <swrl:argument1 rdf:resource="urn:swrl#x"/>
                     </rdf:Description>
                 </rdf:first>
@@ -217,7 +217,7 @@
                     <rdf:Description>
                         <rdf:type rdf:resource="&swrl;DatavaluedPropertyAtom"/>
                         <swrl:argument2 xml:lang="en">english</swrl:argument2>
-                        <swrl:propertyPredicate rdf:resource="file:///home/jiba/src/owlready2/test/test_rule.owl#data_prop"/>
+                        <swrl:propertyPredicate rdf:resource="file:///home/jiba/src/owlready3/test/test_rule.owl#data_prop"/>
                         <swrl:argument1 rdf:resource="urn:swrl#x"/>
                     </rdf:Description>
                 </rdf:first>
@@ -230,7 +230,7 @@
                 <rdf:first>
                     <rdf:Description>
                         <rdf:type rdf:resource="&swrl;ClassAtom"/>
-                        <swrl:classPredicate rdf:resource="file:///home/jiba/src/owlready2/test/test_rule.owl#E"/>
+                        <swrl:classPredicate rdf:resource="file:///home/jiba/src/owlready3/test/test_rule.owl#E"/>
                         <swrl:argument1 rdf:resource="urn:swrl#x"/>
                     </rdf:Description>
                 </rdf:first>
@@ -246,7 +246,7 @@
                 <rdf:first>
                     <rdf:Description>
                         <rdf:type rdf:resource="&swrl;ClassAtom"/>
-                        <swrl:classPredicate rdf:resource="file:///home/jiba/src/owlready2/test/test_rule.owl#E"/>
+                        <swrl:classPredicate rdf:resource="file:///home/jiba/src/owlready3/test/test_rule.owl#E"/>
                         <swrl:argument1 rdf:resource="urn:swrl#x"/>
                     </rdf:Description>
                 </rdf:first>
@@ -260,7 +260,7 @@
                     <rdf:Description>
                         <rdf:type rdf:resource="&swrl;DatavaluedPropertyAtom"/>
                         <swrl:argument2 rdf:datatype="&xsd;boolean">true</swrl:argument2>
-                        <swrl:propertyPredicate rdf:resource="file:///home/jiba/src/owlready2/test/test_rule.owl#data_prop"/>
+                        <swrl:propertyPredicate rdf:resource="file:///home/jiba/src/owlready3/test/test_rule.owl#data_prop"/>
                         <swrl:argument1 rdf:resource="urn:swrl#x"/>
                     </rdf:Description>
                 </rdf:first>

@@ -1,10 +1,11 @@
 Introduction
 ============
 
-Owlready2 is a package for manipulating OWL 2.0 ontologies in Python. It can load, modify, save ontologies, and
-it supports reasoning via HermiT (included). Owlready allows a transparent access to OWL ontologies.
+Owlready3 is a package for manipulating OWL 2.0 ontologies in Python. It can load, modify, save ontologies, and
+it supports reasoning via the native rustdl OWL 2 DL reasoner (no Java required). Owlready allows a transparent
+access to OWL ontologies.
 
-Owlready2 can:
+Owlready3 can:
 
  - Import ontologies in RDF/XML, OWL/XML or NTriples format.
 
@@ -12,12 +13,13 @@ Owlready2 can:
 
  - Add Python methods to ontology classes.
 
- - Re-classify instances automatically, using the HermiT reasoner.
+ - Re-classify instances and classes automatically, using the rustdl reasoner (see :doc:`reasoning`).
 
- - Import medical terminologies from UMLS (see :doc:`pymedtermino2`).
+ - Integrate loosely with external reasoning (rustdl) and persistent store / SPARQL querying
+   (omny) tools (see :doc:`integration`).
 
-   
-If you need to "convert" formulas between Protégé, Owlready2 and/or Description Logics, the following cheat sheet may be of interest:
+
+If you need to "convert" formulas between Protégé, Owlready3 and/or Description Logics, the following cheat sheet may be of interest:
 
 `The great table of Description Logics and formal ontology notations <http://www.lesfleursdunormal.fr/static/_downloads/great_ontology_table.pdf>`_
 
@@ -29,7 +31,7 @@ Load an ontology from a local repository, or from Internet:
 
 ::
    
-   >>> from owlready2 import *
+   >>> from owlready3 import *
    >>> onto_path.append("/path/to/your/local/ontology/repository")
    >>> onto = get_ontology("http://www.lesfleursdunormal.fr/static/_downloads/pizza_onto.owl")
    >>> onto.load()
@@ -58,9 +60,9 @@ Access the classes of the ontology, and create new instances / individuals:
    >>> test_pizza.has_topping = [ onto.CheeseTopping(),
    ...                            onto.TomatoTopping() ]
 
-In Owlready2, almost any lists can be modified *in place*,
+In Owlready3, almost any lists can be modified *in place*,
 for example by appending/removing items from lists.
-Owlready2 automatically updates the RDF quadstore.
+Owlready3 automatically updates the RDF quadstore.
 
 ::
 
@@ -73,7 +75,7 @@ Perform reasoning, and classify instances and classes:
   >>> test_pizza.__class__
   onto.Pizza
    
-  >>> # Execute HermiT and reparent instances and classes
+  >>> # Run rustdl and reparent instances and classes
   >>> sync_reasoner()
   
   >>> test_pizza.__class__
@@ -91,7 +93,7 @@ Export to OWL file:
 Architecture
 ------------
 
-Owlready2 maintains a RDF quadstore in an optimized database (SQLite3),
+Owlready3 maintains a RDF quadstore in an optimized database (SQLite3),
 either in memory or on the disk (see :doc:`world`). It provides a high-level access to the Classes and the
 objects in the ontology (aka. ontology-oriented programming). Classes and Invididuals are loaded
 dynamically from the quadstore as needed, cached in memory and destroyed when no longer needed.

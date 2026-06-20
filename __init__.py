@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Owlready2
+# Owlready3
 # Copyright (C) 2013-2019 Jean-Baptiste LAMY
 # LIMICS (Laboratoire d'informatique médicale et d'ingénierie des connaissances en santé), UMR_S 1142
 # University Paris 13, Sorbonne paris-Cité, Bobigny, France
@@ -19,100 +19,95 @@
 
 VERSION = "0.25"
 
-JAVA_EXE = "java"
+from owlready3.base            import *
 
-from owlready2.base            import *
-#_render_func = default_render_func
+from owlready3.namespace       import *
+from owlready3.entity          import *
+from owlready3.prop            import *
+from owlready3.prop            import _FUNCTIONAL_FOR_CACHE
+from owlready3.individual      import *
+from owlready3.class_construct import *
+from owlready3.disjoint        import *
+from owlready3.annotation      import *
+from owlready3.reasoning       import *
+from owlready3.reasoning       import _keep_most_specific
+from owlready3.close           import *
 
-from owlready2.namespace       import *
-from owlready2.entity          import *
-from owlready2.prop            import *
-from owlready2.prop            import _FUNCTIONAL_FOR_CACHE
-from owlready2.individual      import *
-from owlready2.class_construct import *
-from owlready2.disjoint        import *
-from owlready2.annotation      import *
-from owlready2.reasoning       import *
-from owlready2.reasoning       import _keep_most_specific
-from owlready2.close           import *
+import owlready3.namespace, owlready3.entity, owlready3.prop, owlready3.class_construct, owlready3.triplelite
+owlready3.triplelite.Or                     = Or
+owlready3.namespace.EntityClass             = EntityClass
+owlready3.namespace.ThingClass              = ThingClass
+owlready3.namespace.PropertyClass           = PropertyClass
+owlready3.namespace.AnnotationPropertyClass = AnnotationPropertyClass
+owlready3.namespace.ObjectPropertyClass     = ObjectPropertyClass
+owlready3.namespace.DataPropertyClass       = DataPropertyClass
+owlready3.namespace.ObjectProperty          = ObjectProperty
+owlready3.namespace.DataProperty            = DataProperty
+owlready3.namespace.AnnotationProperty      = AnnotationProperty
+owlready3.namespace.Thing                   = Thing
+owlready3.namespace.Property                = Property
+owlready3.namespace.Or                      = Or
+owlready3.namespace.And                     = And
+owlready3.namespace.Not                     = Not
+owlready3.namespace.Restriction             = Restriction
+owlready3.namespace.OneOf                   = OneOf
+owlready3.namespace.FusionClass             = FusionClass
+owlready3.namespace.AllDisjoint             = AllDisjoint
+owlready3.namespace.ConstrainedDatatype     = ConstrainedDatatype
+owlready3.namespace.Inverse                 = Inverse
+owlready3.namespace.IndividualValueList     = IndividualValueList
+owlready3.entity.Thing              = Thing
+owlready3.entity.Nothing            = Nothing
+owlready3.entity.Construct          = Construct
+owlready3.entity.And                = And
+owlready3.entity.Or                 = Or
+owlready3.entity.Not                = Not
+owlready3.entity.OneOf              = OneOf
+owlready3.entity.Restriction        = Restriction
+owlready3.entity.ObjectPropertyClass= ObjectPropertyClass
+owlready3.entity.ObjectProperty     = ObjectProperty
+owlready3.entity.DataProperty       = DataProperty
+owlready3.entity.AnnotationProperty = AnnotationProperty
+owlready3.entity.ReasoningPropertyClass = ReasoningPropertyClass
+owlready3.entity.FunctionalProperty = FunctionalProperty
+#owlready3.entity.ValueList          = ValueList
+owlready3.entity.AllDisjoint        = AllDisjoint
+owlready3.entity.Inverse            = Inverse
+owlready3.entity._FUNCTIONAL_FOR_CACHE = _FUNCTIONAL_FOR_CACHE
+owlready3.entity._property_value_restrictions = owlready3.prop._property_value_restrictions
+owlready3.entity._inherited_properties_value_restrictions = owlready3.prop._inherited_properties_value_restrictions
+owlready3.disjoint.Or = Or
+owlready3.prop.Restriction             = Restriction
+owlready3.prop.ConstrainedDatatype     = ConstrainedDatatype
+owlready3.prop.Construct               = Construct
+owlready3.prop.AnnotationProperty      = AnnotationProperty
+owlready3.prop.Thing                   = Thing
+owlready3.prop.PropertyChain           = PropertyChain
+owlready3.prop._check_superclasses     = True
 
-import owlready2.namespace, owlready2.entity, owlready2.prop, owlready2.class_construct, owlready2.triplelite
-owlready2.triplelite.Or                     = Or
-owlready2.namespace.EntityClass             = EntityClass
-owlready2.namespace.ThingClass              = ThingClass
-owlready2.namespace.PropertyClass           = PropertyClass
-owlready2.namespace.AnnotationPropertyClass = AnnotationPropertyClass
-owlready2.namespace.ObjectPropertyClass     = ObjectPropertyClass
-owlready2.namespace.DataPropertyClass       = DataPropertyClass
-owlready2.namespace.ObjectProperty          = ObjectProperty
-owlready2.namespace.DataProperty            = DataProperty
-owlready2.namespace.AnnotationProperty      = AnnotationProperty
-owlready2.namespace.Thing                   = Thing
-owlready2.namespace.Property                = Property
-owlready2.namespace.Or                      = Or
-owlready2.namespace.And                     = And
-owlready2.namespace.Not                     = Not
-owlready2.namespace.Restriction             = Restriction
-owlready2.namespace.OneOf                   = OneOf
-owlready2.namespace.FusionClass             = FusionClass
-owlready2.namespace.AllDisjoint             = AllDisjoint
-owlready2.namespace.ConstrainedDatatype     = ConstrainedDatatype
-owlready2.namespace.Inverse                 = Inverse
-owlready2.namespace.IndividualValueList     = IndividualValueList
-owlready2.entity.Thing              = Thing
-owlready2.entity.Nothing            = Nothing
-owlready2.entity.Construct          = Construct
-owlready2.entity.And                = And
-owlready2.entity.Or                 = Or
-owlready2.entity.Not                = Not
-owlready2.entity.OneOf              = OneOf
-owlready2.entity.Restriction        = Restriction
-owlready2.entity.ObjectPropertyClass= ObjectPropertyClass
-owlready2.entity.ObjectProperty     = ObjectProperty
-owlready2.entity.DataProperty       = DataProperty
-owlready2.entity.AnnotationProperty = AnnotationProperty
-owlready2.entity.ReasoningPropertyClass = ReasoningPropertyClass
-owlready2.entity.FunctionalProperty = FunctionalProperty
-#owlready2.entity.ValueList          = ValueList
-owlready2.entity.AllDisjoint        = AllDisjoint
-owlready2.entity.Inverse            = Inverse
-owlready2.entity._FUNCTIONAL_FOR_CACHE = _FUNCTIONAL_FOR_CACHE
-owlready2.entity._property_value_restrictions = owlready2.prop._property_value_restrictions
-owlready2.entity._inherited_properties_value_restrictions = owlready2.prop._inherited_properties_value_restrictions
-owlready2.disjoint.Or = Or
-owlready2.prop.Restriction             = Restriction
-owlready2.prop.ConstrainedDatatype     = ConstrainedDatatype
-owlready2.prop.Construct               = Construct
-owlready2.prop.AnnotationProperty      = AnnotationProperty
-owlready2.prop.Thing                   = Thing
-owlready2.prop.PropertyChain           = PropertyChain
-owlready2.prop._check_superclasses     = True
+owlready3.prop.ThingClass              = ThingClass
+owlready3.prop.And                     = And
+owlready3.prop.Or                      = Or
+owlready3.prop.OneOf                   = OneOf
+owlready3.annotation.Construct         = Construct
 
-owlready2.prop.ThingClass              = ThingClass
-owlready2.prop.And                     = And
-owlready2.prop.Or                      = Or
-owlready2.prop.OneOf                   = OneOf
-owlready2.annotation.Construct         = Construct
+owlready3.individual._keep_most_specific = _keep_most_specific
+owlready3.individual.Construct           = Construct
+owlready3.individual.TransitiveProperty  = TransitiveProperty
+owlready3.individual.SymmetricProperty   = SymmetricProperty
+owlready3.individual.ReflexiveProperty   = ReflexiveProperty
+owlready3.individual.InverseFunctionalProperty = InverseFunctionalProperty
+owlready3.individual.AnnotationPropertyClass   = AnnotationPropertyClass
+owlready3.class_construct.Thing       = Thing
+owlready3.class_construct.ThingClass  = ThingClass
+owlready3.class_construct.EntityClass = EntityClass
 
-owlready2.individual._keep_most_specific = _keep_most_specific
-owlready2.individual.Construct           = Construct
-owlready2.individual.TransitiveProperty  = TransitiveProperty
-owlready2.individual.SymmetricProperty   = SymmetricProperty
-owlready2.individual.ReflexiveProperty   = ReflexiveProperty
-owlready2.individual.InverseFunctionalProperty = InverseFunctionalProperty
-owlready2.individual.AnnotationPropertyClass   = AnnotationPropertyClass
-owlready2.class_construct.Thing       = Thing
-owlready2.class_construct.ThingClass  = ThingClass
-owlready2.class_construct.EntityClass = EntityClass
+del owlready3
 
-#owlready2.reasoning.Construct = Construct
+from owlready3.rule            import *
 
-del owlready2
-
-from owlready2.rule            import *
-
-import owlready2.manchester
-from owlready2.manchester import (to_manchester, manchester_render_ontology,
+import owlready3.manchester
+from owlready3.manchester import (to_manchester, manchester_render_ontology,
                                   parse_manchester_expression,
                                   parse_manchester_ontology,
                                   instances_of, classes_matching)

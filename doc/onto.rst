@@ -10,7 +10,7 @@ The IRI is a sort of URL; IRIs are used as identifier for ontologies.
 
 ::
 
-   >>> from owlready2 import *
+   >>> from owlready3 import *
    
    >>> onto = get_ontology("http://test.org/onto.owl")
 
@@ -22,7 +22,7 @@ The IRI is a sort of URL; IRIs are used as identifier for ontologies.
 .. note::
    
    Some ontologies use a # character in IRI to separate the name of the ontology from the name of the
-   entities, while some others uses a /. By default, Owlready2 uses a #, if you want to use a /, the IRI
+   entities, while some others uses a /. By default, Owlready3 uses a #, if you want to use a /, the IRI
    should ends with /.
 
    Examples:
@@ -51,7 +51,7 @@ local filename prefixed with "file://", for example:
    >>> onto = get_ontology("file:///home/jiba/onto/pizza_onto.owl").load()
 
    
-If an URL is given, Owlready2 first searches for a local copy of the OWL file and,
+If an URL is given, Owlready3 first searches for a local copy of the OWL file and,
 if not found, tries to download it from the Internet. For example:
 
 ::
@@ -71,14 +71,14 @@ It will be loaded only once.
 
 .. note::
    
-   Owlready2 currently reads the following file format: RDF/XML, OWL/XML, NTriples.
+   Owlready3 currently reads the following file format: RDF/XML, OWL/XML, NTriples.
    The file format is automatically detected.
 
-   NTriples is a very simple format and is natively supported by Owlready2.
+   NTriples is a very simple format and is natively supported by Owlready3.
    
-   RDF/XML is the most common format; it is also natively supported by Owlready2 (since version 0.2).
+   RDF/XML is the most common format; it is also natively supported by Owlready3 (since version 0.2).
    
-   OWL/XML is supported using a specific parser integrated to Owlready2.
+   OWL/XML is supported using a specific parser integrated to Owlready3.
    This parser supports a large subset of OWL, but is not complete.
    It has been tested mostly with OWL files created with the Protégé editor or with Owlready itself.
    Consequently, preferred formats are RDF/XML and NTriples.
@@ -268,10 +268,10 @@ and 'format', the file format (default is RDF/XML).
 
 .. note::
    
-   Owlready2 currently writes the following file format: "rdf/xml", "ntriples".
+   Owlready3 currently writes the following file format: "rdf/xml", "ntriples".
    
-   NTriples is a very simple format and is natively supported by Owlready2.
+   NTriples is a very simple format and is natively supported by Owlready3.
    
-   RDF/XML is the most common format; it is also natively supported by Owlready2 (since version 0.2).
+   RDF/XML is the most common format; it is also natively supported by Owlready3 (since version 0.2).
    
    OWL/XML is not yet supported for writing.

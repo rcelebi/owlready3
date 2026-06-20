@@ -47,7 +47,7 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = 'Owlready2'
+project = 'Owlready3'
 copyright = '2014-2019, Jean-Baptiste LAMY'
 
 # The version info for the project you're documenting, acts as replacement for
@@ -183,7 +183,7 @@ html_use_index = False
 #html_file_suffix = None
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'Owlready2doc'
+htmlhelp_basename = 'Owlready3doc'
 
 
 # -- Options for LaTeX output ---------------------------------------------
@@ -203,7 +203,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-  ('index', 'Owlready2.tex', 'Owlready2 Documentation',
+  ('index', 'Owlready3.tex', 'Owlready3 Documentation',
    'Jean-Baptiste LAMY', 'manual'),
 ]
 
@@ -233,7 +233,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    ('index', 'owlready2', 'Owlready2 Documentation',
+    ('index', 'owlready3', 'Owlready3 Documentation',
      ['Jean-Baptiste LAMY'], 1)
 ]
 
@@ -247,8 +247,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-  ('index', 'Owlready2', 'Owlready2 Documentation',
-   'Jean-Baptiste LAMY', 'Owlready2', 'One line description of project.',
+  ('index', 'Owlready3', 'Owlready3 Documentation',
+   'Jean-Baptiste LAMY', 'Owlready3', 'One line description of project.',
    'Miscellaneous'),
 ]
 
@@ -266,3 +266,28 @@ texinfo_documents = [
 
 #intersphinx_mapping = {'http://docs.python.org/': None}
 intersphinx_mapping = {}
+
+
+# -- Options for PDF output (rst2pdf) -------------------------------------
+# Optional single-file PDF build (no LaTeX needed):
+#     pip install rst2pdf
+#     sphinx-build -b pdf doc doc/_build/pdf
+# The extension is added only if rst2pdf is installed, so normal HTML/LaTeX
+# builds are unaffected when it is absent.
+try:
+    import rst2pdf.pdfbuilder  # noqa: F401
+    extensions.append("rst2pdf.pdfbuilder")
+except ImportError:
+    pass
+
+# (start_doc, target_basename, title, author)
+pdf_documents = [
+    ("index", "Owlready3", "Owlready3 Documentation", "Jean-Baptiste LAMY"),
+]
+pdf_use_toc = True
+pdf_use_coverpage = True
+pdf_break_level = 1
+# Smaller code font + wider text frame so code-heavy pages fit cleanly.
+_HERE = os.path.dirname(os.path.abspath(__file__))
+pdf_style_path = [_HERE, os.path.join(_HERE, "_static")]
+pdf_stylesheets = ["sphinx", "owlready3_pdf"]

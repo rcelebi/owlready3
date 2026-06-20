@@ -6,7 +6,7 @@
 
 # Import OwlReady
 
-from owlready2 import *
+from owlready3 import *
 
 
 # Create the ontology from scratch
