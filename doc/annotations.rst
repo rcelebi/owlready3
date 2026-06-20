@@ -1,7 +1,7 @@
 Annotations
 ===========
 
-In Owlready2, annotations are accessed as attributes.
+In Owlready3, annotations are accessed as attributes.
 For Classes, notice that annotations are **not** inherited.
 
 
@@ -13,7 +13,7 @@ annotations:
 
 ::
    
-   >>> from owlready2 import *
+   >>> from owlready3 import *
    
    >>> onto = get_ontology("http://test.org/onto.owl")
    
@@ -28,7 +28,7 @@ annotations:
 The following annotations are available by default: comment, isDefinedBy, label, seeAlso,
 backwardCompatibleWith, deprecated, incompatibleWith, priorVersion, versionInfo.
 
-Owlready2 also supports annotations on relation triples, using the AnnotationProperty (here comment)
+Owlready3 also supports annotations on relation triples, using the AnnotationProperty (here comment)
 as a pseudo-dictionary:
 
 ::
@@ -55,7 +55,7 @@ domains (rdf_domain) and ranges (rdf_range).
 
 
 Annotation values are usually lists of values. However, in many cases, a single value is used.
-Owlready2 accepts to set an annotation property to a single value, for example:
+Owlready3 accepts to set an annotation property to a single value, for example:
 
 ::
    
@@ -107,7 +107,7 @@ For removing **all** annotations of a given type:
 Custom rendering of entities
 ----------------------------
 
-The set_render_func() global function can be used to specify how Owlready2 renders entities, i.e. how they are
+The set_render_func() global function can be used to specify how Owlready3 renders entities, i.e. how they are
 converted to text when printing them. set_render_func() accepts a single param, a function which takes
 one entity and return a string.
 

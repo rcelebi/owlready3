@@ -1,14 +1,14 @@
-# python ./owlready2/test/bench.py > /dev/null
+# python ./owlready3/test/bench.py > /dev/null
 
-# python ./owlready2/test/bench.py -f > /dev/null
+# python ./owlready3/test/bench.py -f > /dev/null
 
 #Load time 10.203434944152832 s.
 #List class time 11.326752662658691 s.
 
 import sys, time#, cProfile
 
-import owlready2
-from owlready2 import *
+import owlready3
+from owlready3 import *
 
 t = time.time()
 

@@ -1,46 +1,14 @@
-global-include *.py
-global-include *.pyx
-global-include *.txt
-global-include *.owl
-global-include *.rdf
-global-include *.ntriples
-global-include *.nt
-global-include *.rst
-global-include *.png
-global-include *.svg
+include LICENSE.txt
+include README.md
+include README.rst
+include owlready_ontology.owl
+include owlready3_optimized.pyx
 
 graft doc
 graft test
-graft hermit
-graft pellet
-graft locale
 
-include ./LICENSE.txt
-include ./README.rst
-
-exclude .hg
-exclude .hg/*
-exclude .git
-exclude .git/*
-exclude .gitignore
-
-exclude doc/examples/contraindications.py
-
-global-exclude *.pyc
-global-exclude *.pyo
-global-exclude *.save
-global-exclude catalog-v001.xml
+prune build
+global-exclude *.pyc *.pyo *.so *.c
+global-exclude *.save catalog-v001.xml
 global-exclude __pycache__
-global-exclude test*.py
-
-exclude test/*
-include test/regtest.py
-include test/bench.py
-include test/Bench.java
-include test/Save.java
-include test/Save.class
-include test/test_mixed.py
-include test/test_parser.py
-include test/test_quadstore_slash.sqlite3
-include test/*.ntriples
-include test/*.owl
+global-exclude .DS_Store

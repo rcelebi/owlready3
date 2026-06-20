@@ -10,7 +10,7 @@ but the IRI of GO entities are not of the form 'http://purl.obolibrary.org/obo/g
 Accessing entities defined in another namespace
 -----------------------------------------------
 
-These entities can be accessed in Owlready2 using a namespace. The get_namepace(base_iri) global function
+These entities can be accessed in Owlready3 using a namespace. The get_namepace(base_iri) global function
 returns a namespace for the given base IRI.
 
 The namespace can then be used with the dot notation, similarly to the ontology.
@@ -74,7 +74,7 @@ For example:
 In the example above, the Drug Class IRI is "http://test.org/pharmaco/Drug", but the Drug Class
 belongs to the 'http://test.org/onto' ontology.
 
-Owlready2 proposes 3 methods for indicating the namespace:
+Owlready3 proposes 3 methods for indicating the namespace:
 
  * the 'namespace' Class attribute
  * the 'with namespace' statement
@@ -101,7 +101,7 @@ Modifying a class defined in another ontology
 
 In OWL, an ontology can also *modify* a Class already defined in another ontology.
 
-In Owlready2, this can be done using the 'with namespace' statement.
+In Owlready3, this can be done using the 'with namespace' statement.
 Every RDF triples added (or deleted) inside a 'with namespace' statement
 goes in the ontology corresponding to the namespace of the 'with namespace' statement.
 

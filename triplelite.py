@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Owlready2
+# Owlready3
 # Copyright (C) 2017-2019 Jean-Baptiste LAMY
 # LIMICS (Laboratoire d'informatique médicale et d'ingénierie des connaissances en santé), UMR_S 1142
 # University Paris 13, Sorbonne paris-Cité, Bobigny, France
@@ -21,12 +21,12 @@ import sys, os, os.path, sqlite3, time, re, threading
 from collections import defaultdict
 from itertools import chain
 
-import owlready2
-from owlready2.base import *
-from owlready2.driver import BaseMainGraph, BaseSubGraph
-from owlready2.driver import _guess_format, _save
-from owlready2.util import FTS, _LazyListMixin
-from owlready2.base import _universal_abbrev_2_iri
+import owlready3
+from owlready3.base import *
+from owlready3.driver import BaseMainGraph, BaseSubGraph
+from owlready3.driver import _guess_format, _save
+from owlready3.util import FTS, _LazyListMixin
+from owlready3.base import _universal_abbrev_2_iri
 
 def all_combinations(l):
   """returns all the combinations of the sublist in the given list (i.e. l[0] x l[1] x ... x l[n])."""
@@ -36,28 +36,6 @@ def all_combinations(l):
   for a in l[0]: r.extend((a,) + b for b in all_combinations(l[1:]))
   return r
 
-# def group_iters(quad_cursor, data_cursor):
-#   s = None
-  
-#   quad = next(quad_cursor, None)
-#   data = next(data_cursor, None)
-  
-#   while quad or data:
-#     if quad and data:
-#       if quad[0] < data[0]: s = quad[0]
-#       else:                 s = data[0]
-#     elif quad:              s = quad[0]
-#     else:                   s = data[0]
-    
-#     while quad:
-#       if quad[0] != s: break
-#       yield quad
-#       quad = next(quad_cursor, None)
-      
-#     while data:
-#       if data[0] != s: break
-#       yield data
-#       data = next(data_cursor, None)
       
 
 class Graph(BaseMainGraph):
@@ -201,19 +179,19 @@ class Graph(BaseMainGraph):
         self.current_resource = clone.current_resource
       
       if version == 1:
-        print("* Owlready2 * Converting quadstore to internal format 2...", file = sys.stderr)
+        print("* Owlready3 * Converting quadstore to internal format 2...", file = sys.stderr)
         self.execute("""CREATE TABLE ontology_alias (iri TEXT, alias TEXT)""")
         self.execute("""UPDATE store SET version=2""")
         self.db.commit()
         
       if version == 2:
-        print("* Owlready2 * Converting quadstore to internal format 3...", file = sys.stderr)
+        print("* Owlready3 * Converting quadstore to internal format 3...", file = sys.stderr)
         self.execute("""CREATE TABLE prop_fts (fts INTEGER PRIMARY KEY, storid TEXT)""")
         self.execute("""UPDATE store SET version=3""")
         self.db.commit()
         
       if version == 3:
-        print("* Owlready2 * Converting quadstore to internal format 4 (this can take a while)...", file = sys.stderr)
+        print("* Owlready3 * Converting quadstore to internal format 4 (this can take a while)...", file = sys.stderr)
         self.execute("""CREATE TABLE objs (c INTEGER, s TEXT, p TEXT, o TEXT)""")
         self.execute("""CREATE TABLE datas (c INTEGER, s TEXT, p TEXT, o BLOB, d TEXT)""")
 
@@ -244,7 +222,7 @@ class Graph(BaseMainGraph):
         self.db.commit()
         
       if version == 4:
-        print("* Owlready2 * Converting quadstore to internal format 5 (this can take a while)...", file = sys.stderr)
+        print("* Owlready3 * Converting quadstore to internal format 5 (this can take a while)...", file = sys.stderr)
         self.execute("""CREATE TABLE objs2 (c INTEGER, s INTEGER, p INTEGER, o INTEGER)""")
         self.execute("""CREATE TABLE datas2 (c INTEGER, s INTEGER, p INTEGER, o BLOB, d INTEGER)""")
         
@@ -324,7 +302,7 @@ class Graph(BaseMainGraph):
         self.db.commit()
 
       if version == 5:
-        print("* Owlready2 * Converting quadstore to internal format 6 (this can take a while)...", file = sys.stderr)
+        print("* Owlready3 * Converting quadstore to internal format 6 (this can take a while)...", file = sys.stderr)
         self.execute("""DROP INDEX IF EXISTS index_objs_po""")
         self.execute("""DROP INDEX IF EXISTS index_datas_po""")
         self.execute("""CREATE INDEX index_objs_op ON objs(o,p)""")
@@ -334,7 +312,7 @@ class Graph(BaseMainGraph):
         self.db.commit()
         
       if version == 6:
-        print("* Owlready2 * Converting quadstore to internal format 7 (this can take a while)...", file = sys.stderr)
+        print("* Owlready3 * Converting quadstore to internal format 7 (this can take a while)...", file = sys.stderr)
         
         prop_fts2 = { storid for (storid,) in self.execute("""SELECT storid FROM prop_fts;""") }
         for prop_storid in prop_fts2:
@@ -350,28 +328,28 @@ class Graph(BaseMainGraph):
         self.db.commit()
         
       if version == 7:
-        print("* Owlready2 * Converting quadstore to internal format 8...", file = sys.stderr)
+        print("* Owlready3 * Converting quadstore to internal format 8...", file = sys.stderr)
         
-        import owlready2.base
+        import owlready3.base
         self.db.executemany("""INSERT INTO resources VALUES (?,?)""", [
-          (owlready2.base.swrl_variable, "http://www.w3.org/2003/11/swrl#Variable"),
-          (owlready2.base.swrl_imp,                  "http://www.w3.org/2003/11/swrl#Imp"),
-          (owlready2.base.swrl_body,                 "http://www.w3.org/2003/11/swrl#body"),
-          (owlready2.base.swrl_head,                 "http://www.w3.org/2003/11/swrl#head"),
-          (owlready2.base.swrl_class_atom,           "http://www.w3.org/2003/11/swrl#ClassAtom"),
-          (owlready2.base.swrl_class_predicate,      "http://www.w3.org/2003/11/swrl#classPredicate"),
-          (owlready2.base.swrl_dataprop_atom,        "http://www.w3.org/2003/11/swrl#DatavaluedPropertyAtom"),
-          (owlready2.base.swrl_objprop_atom,         "http://www.w3.org/2003/11/swrl#IndividualPropertyAtom"),
-          (owlready2.base.swrl_property_predicate,   "http://www.w3.org/2003/11/swrl#propertyPredicate"),
-          (owlready2.base.swrl_builtin_atom,         "http://www.w3.org/2003/11/swrl#BuiltinAtom"),
-          (owlready2.base.swrl_builtin,              "http://www.w3.org/2003/11/swrl#builtin"),
-          (owlready2.base.swrl_datarange_atom,       "http://www.w3.org/2003/11/swrl#DataRangeAtom"),
-          (owlready2.base.swrl_datarange,            "http://www.w3.org/2003/11/swrl#dataRange"),
-          (owlready2.base.swrl_argument1,            "http://www.w3.org/2003/11/swrl#argument1"),
-          (owlready2.base.swrl_argument2,            "http://www.w3.org/2003/11/swrl#argument2"),
-          (owlready2.base.swrl_arguments,            "http://www.w3.org/2003/11/swrl#arguments"),
-          (owlready2.base.swrl_equivalentindividual, "http://www.w3.org/2003/11/swrl#SameIndividualAtom"),
-          (owlready2.base.swrl_differentfrom,        "http://www.w3.org/2003/11/swrl#DifferentIndividualsAtom"),
+          (owlready3.base.swrl_variable, "http://www.w3.org/2003/11/swrl#Variable"),
+          (owlready3.base.swrl_imp,                  "http://www.w3.org/2003/11/swrl#Imp"),
+          (owlready3.base.swrl_body,                 "http://www.w3.org/2003/11/swrl#body"),
+          (owlready3.base.swrl_head,                 "http://www.w3.org/2003/11/swrl#head"),
+          (owlready3.base.swrl_class_atom,           "http://www.w3.org/2003/11/swrl#ClassAtom"),
+          (owlready3.base.swrl_class_predicate,      "http://www.w3.org/2003/11/swrl#classPredicate"),
+          (owlready3.base.swrl_dataprop_atom,        "http://www.w3.org/2003/11/swrl#DatavaluedPropertyAtom"),
+          (owlready3.base.swrl_objprop_atom,         "http://www.w3.org/2003/11/swrl#IndividualPropertyAtom"),
+          (owlready3.base.swrl_property_predicate,   "http://www.w3.org/2003/11/swrl#propertyPredicate"),
+          (owlready3.base.swrl_builtin_atom,         "http://www.w3.org/2003/11/swrl#BuiltinAtom"),
+          (owlready3.base.swrl_builtin,              "http://www.w3.org/2003/11/swrl#builtin"),
+          (owlready3.base.swrl_datarange_atom,       "http://www.w3.org/2003/11/swrl#DataRangeAtom"),
+          (owlready3.base.swrl_datarange,            "http://www.w3.org/2003/11/swrl#dataRange"),
+          (owlready3.base.swrl_argument1,            "http://www.w3.org/2003/11/swrl#argument1"),
+          (owlready3.base.swrl_argument2,            "http://www.w3.org/2003/11/swrl#argument2"),
+          (owlready3.base.swrl_arguments,            "http://www.w3.org/2003/11/swrl#arguments"),
+          (owlready3.base.swrl_equivalentindividual, "http://www.w3.org/2003/11/swrl#SameIndividualAtom"),
+          (owlready3.base.swrl_differentfrom,        "http://www.w3.org/2003/11/swrl#DifferentIndividualsAtom"),
         ])
         self.execute("""UPDATE store SET version=8""")
         self.db.commit()
@@ -386,23 +364,6 @@ class Graph(BaseMainGraph):
     
   def set_indexed(self, indexed):
     pass
-    #self.indexed = indexed
-    #if indexed:
-    #  self.execute("""CREATE INDEX index_objs_sp ON objs(s,p)""")
-    #  #self.execute("""CREATE INDEX index_objs_op ON objs(o,p,c)""") # c is for onto.classes(), etc
-    #  self.execute("""CREATE UNIQUE INDEX index_objs_op ON objs(o,p,c,s)""") # c is for onto.classes(), etc
-    #  
-    #  self.execute("""CREATE INDEX index_datas_sp ON datas(s,p)""")
-    #  #self.execute("""CREATE INDEX index_datas_op ON datas(o,p)""")
-    #  self.execute("""CREATE UNIQUE INDEX index_datas_op ON datas(o,p,c,d,s)""")
-    #  
-    #  for onto in self.world.ontologies.values():
-    #    onto._load_properties()
-    #else:
-    #  self.execute("""DROP INDEX IF EXISTS index_objs_sp""")
-    #  self.execute("""DROP INDEX IF EXISTS index_objs_op""")
-    #  self.execute("""DROP INDEX IF EXISTS index_datas_sp""")
-    #  self.execute("""DROP INDEX IF EXISTS index_datas_op""")
     
   def close(self):
     self.db.close()
@@ -778,7 +739,7 @@ class Graph(BaseMainGraph):
         else:           self.execute("DELETE FROM datas INDEXED BY index_datas_sp WHERE s=? AND p=? AND o=? AND d=?", (s, p, o, d,))
         
   def _punned_entities(self):
-    from owlready2.base import rdf_type, owl_class, owl_named_individual
+    from owlready3.base import rdf_type, owl_class, owl_named_individual
     cur = self.execute("SELECT q1.s FROM objs q1, objs q2 WHERE q1.s=q2.s AND q1.p=? AND q2.p=? AND q1.o=? AND q2.o=?", (rdf_type, rdf_type, owl_class, owl_named_individual))
     return [storid for (storid,) in cur.fetchall()]
   
@@ -1092,7 +1053,7 @@ class SubGraph(BaseSubGraph):
       
     def insert_objs():
       nonlocal objs, new_abbrevs
-      if owlready2.namespace._LOG_LEVEL: print("* OwlReady2 * Importing %s object triples from ontology %s ..." % (len(objs), self.onto.base_iri), file = sys.stderr)
+      if owlready3.namespace._LOG_LEVEL: print("* OwlReady2 * Importing %s object triples from ontology %s ..." % (len(objs), self.onto.base_iri), file = sys.stderr)
       cur.executemany("INSERT INTO resources VALUES (?,?)", new_abbrevs)
       cur.executemany("INSERT OR IGNORE INTO objs VALUES (%s,?,?,?)" % self.c, objs)
       objs        .clear()
@@ -1100,7 +1061,7 @@ class SubGraph(BaseSubGraph):
       
     def insert_datas():
       nonlocal datas, new_abbrevs
-      if owlready2.namespace._LOG_LEVEL: print("* OwlReady2 * Importing %s data triples from ontology %s ..." % (len(datas), self.onto.base_iri), file = sys.stderr)
+      if owlready3.namespace._LOG_LEVEL: print("* OwlReady2 * Importing %s data triples from ontology %s ..." % (len(datas), self.onto.base_iri), file = sys.stderr)
       cur.executemany("INSERT OR IGNORE INTO datas VALUES (%s,?,?,?,?)" % self.c, datas)
       datas.clear()
       

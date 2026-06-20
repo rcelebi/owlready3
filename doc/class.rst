@@ -4,7 +4,7 @@ Classes and Individuals (Instances)
 Creating a Class
 ----------------
 
-A new Class can be created in an ontology by inheriting the owlready2.Thing class.
+A new Class can be created in an ontology by inheriting the owlready3.Thing class.
 
 The ontology class attribute can be used to associate your class to the given ontology. If not specified,
 this attribute is inherited from the parent class (in the example below, the parent class is Thing,
@@ -12,7 +12,7 @@ which is defined in the 'owl' ontology).
 
 ::
 
-   >>> from owlready2 import *
+   >>> from owlready3 import *
    
    >>> onto = get_ontology("http://test.org/onto.owl")
    
@@ -53,7 +53,7 @@ Subclasses can be created by inheriting an ontology class. Multiple inheritance 
    >>> class DrugAssociation(Drug): # A drug associating several active principles
    ...     pass
 
-Owlready2 provides the .is_a attribute for getting the list of superclasses (__bases__ can be used, but
+Owlready3 provides the .is_a attribute for getting the list of superclasses (__bases__ can be used, but
 with some limits described in :doc:`restriction`). It can also be modified for adding or removing superclasses.
 
 ::
@@ -103,7 +103,7 @@ Creating Individuals
 
 Individuals are instances in ontologies. They are created as any other Python instances.
 The first parameter is the name (or identifier) of the Individual;
-it corresponds to the .name attribute in Owlready2.
+it corresponds to the .name attribute in Owlready3.
 If not given, the name if automatically generated from the Class name and a number.
 
 ::
@@ -160,7 +160,7 @@ For a given Individual, the values of a property can be obtained with the usual
 
    >>> print(onto.my_drug.has_for_active_principle)
 
-Property name can be prefixed with "INDIRECT_" to obtain all indirect relations
+Property name can be prefixed with ``INDIRECT_`` to obtain all indirect relations
 (i.e. those asserted at the class level with restriction, implied by transistive properties, subproperties, equivalences, etc):
 
 ::
@@ -201,7 +201,7 @@ It returns a generator that yields (subject, property) tuples.
 Mutli-Class Individuals
 -----------------------
 
-In ontologies, an Individual can belong to more than one Class. This is supported in Owlready2.
+In ontologies, an Individual can belong to more than one Class. This is supported in Owlready3.
 
 Individuals have a .is_a atribute that behaves similarly to Class .is_a,
 but with the Classes of the Individual. In order to create a mutli-Class Individual,
@@ -216,7 +216,7 @@ and then to add the other Class(ses) in its .is_a attribute:
    >>> a_blood_based_drug = Drug()
    >>> a_blood_based_drug.is_a.append(BloodBasedProduct)
 
-Owlready2 will automatically create a hidden Class that inherits from both Drug and BloodBasedProduct. This
+Owlready3 will automatically create a hidden Class that inherits from both Drug and BloodBasedProduct. This
 hidden class is visible in a_blood_based_drug.__class__, but not in a_blood_based_drug.is_a.
    
 
@@ -234,7 +234,7 @@ Destroying entities
 
 The destroy_entity() global function can be used to destroy an entity, i.e. to remove it from the ontology and
 the quad store.
-Owlready2 behaves similarly to Protege4 when destroying entities: all relations involving the destroyed entity
+Owlready3 behaves similarly to Protege4 when destroying entities: all relations involving the destroyed entity
 are destroyed too, as well as all class constructs and blank nodes that refer it.
 
 ::

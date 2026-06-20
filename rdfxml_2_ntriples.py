@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Owlready2
+# Owlready3
 # Copyright (C) 2013-2019 Jean-Baptiste LAMY
 # LIMICS (Laboratoire d'informatique médicale et d'ingénierie des connaissances en santé), UMR_S 1142
 # University Paris 13, Sorbonne paris-Cité, Bobigny, France
@@ -21,7 +21,7 @@ import sys, xml, xml.parsers.expat, urllib.parse
 from collections import defaultdict
 
 try:
-  from owlready2.base import OwlReadyOntologyParsingError
+  from owlready3.base import OwlReadyOntologyParsingError
 except:
   class OwlReadyOntologyParsingError(Exception): pass
 

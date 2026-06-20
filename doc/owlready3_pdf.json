@@ -1,0 +1,12 @@
+{
+  "pageSetup": {
+    "margin-left":   "1.4cm",
+    "margin-right":  "1.4cm",
+    "margin-top":    "1.8cm",
+    "margin-bottom": "1.8cm"
+  },
+  "styles": {
+    "code":    { "fontSize": 7.5, "leading": 8.5 },
+    "literal": { "fontSize": 7.5 }
+  }
+}

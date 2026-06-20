@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Owlready2
+# Owlready3
 # Copyright (C) 2013-2019 Jean-Baptiste LAMY
 # LIMICS (Laboratoire d'informatique médicale et d'ingénierie des connaissances en santé), UMR_S 1142
 # University Paris 13, Sorbonne paris-Cité, Bobigny, France
@@ -19,9 +19,9 @@
 
 from itertools import chain
 
-from owlready2.namespace import *
+from owlready3.namespace import *
 
-from owlready2.base import _universal_iri_2_abbrev, _universal_abbrev_2_datatype, _universal_datatype_2_abbrev
+from owlready3.base import _universal_iri_2_abbrev, _universal_abbrev_2_datatype, _universal_datatype_2_abbrev
 _non_negative_integer = _universal_iri_2_abbrev["http://www.w3.org/2001/XMLSchema#nonNegativeInteger"]
 
 def _deepcopy_construct(x):
@@ -195,12 +195,12 @@ class LogicalClassConstruct(ClassConstruct):
   def __hash__(self): return hash(frozenset(self.Classes))
   
   def __rshift__(Domain, Range):
-    import owlready2.prop
-    owlready2.prop._next_domain_range = (Domain, Range)
+    import owlready3.prop
+    owlready3.prop._next_domain_range = (Domain, Range)
     if isinstance(Range, ThingClass) or isinstance(Range, Construct):
-      return owlready2.prop.ObjectProperty
+      return owlready3.prop.ObjectProperty
     else:
-      return owlready2.prop.DataProperty
+      return owlready3.prop.DataProperty
     
   def _set_ontology(self, ontology):
     if ontology and (self._list_bnode is None):

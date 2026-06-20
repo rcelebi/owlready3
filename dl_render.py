@@ -2,16 +2,15 @@
 import types
 from typing import Union, Optional
 
-from owlready2 .disjoint import AllDisjoint
-from owlready2.class_construct import LogicalClassConstruct, Or, And, Not, Inverse, \
+from owlready3 .disjoint import AllDisjoint
+from owlready3.class_construct import LogicalClassConstruct, Or, And, Not, Inverse, \
     Construct, Restriction, OneOf, ConstrainedDatatype, PropertyChain
-from owlready2.entity import EntityClass, ThingClass
-from owlready2.annotation import AnnotationPropertyClass
-from owlready2.prop import PropertyClass, ObjectPropertyClass, DataPropertyClass, ReasoningPropertyClass, \
+from owlready3.entity import EntityClass, ThingClass
+from owlready3.prop import PropertyClass, ObjectPropertyClass, DataPropertyClass, \
     SymmetricProperty, AsymmetricProperty, TransitiveProperty, FunctionalProperty, ReflexiveProperty, \
     IrreflexiveProperty
-from owlready2.namespace import owl, Ontology
-import owlready2.base
+from owlready3.namespace import owl, Ontology
+import owlready3.base
 
 _DL_SYNTAX = types.SimpleNamespace(
     SUBCLASS="⊑",
@@ -176,19 +175,19 @@ def dl_render_concept_str(concept: Union[Construct, EntityClass]) -> str:
         # EXACTLY:
         # MIN:
         # MAX:
-        if concept.type == owlready2.base.SOME:
+        if concept.type == owlready3.base.SOME:
             return "%s %s .%s" % (_DL_SYNTAX.EXISTS, this(concept.property), this(concept.value))
-        if concept.type == owlready2.base.ONLY:
+        if concept.type == owlready3.base.ONLY:
             return "%s %s .%s" % (_DL_SYNTAX.FORALL, this(concept.property), this(concept.value))
-        if concept.type == owlready2.base.VALUE:
+        if concept.type == owlready3.base.VALUE:
             return "%s %s .{%s}" % (_DL_SYNTAX.EXISTS, this(concept.property), concept.value.name if isinstance(concept.value, owl.Thing) else concept.value)
-        if concept.type == owlready2.base.HAS_SELF:
+        if concept.type == owlready3.base.HAS_SELF:
             return "%s %s .%s" % (_DL_SYNTAX.EXISTS, this(concept.property), _DL_SYNTAX.SELF)
-        if concept.type == owlready2.base.EXACTLY:
+        if concept.type == owlready3.base.EXACTLY:
             return "%s %s %s .%s" % (_DL_SYNTAX.EQUAL, concept.cardinality, this(concept.property), this(concept.value))
-        if concept.type == owlready2.base.MIN:
+        if concept.type == owlready3.base.MIN:
             return "%s %s %s .%s" % (_DL_SYNTAX.MIN, concept.cardinality, this(concept.property), this(concept.value))
-        if concept.type == owlready2.base.MAX:
+        if concept.type == owlready3.base.MAX:
             return "%s %s %s .%s" % (_DL_SYNTAX.MAX, concept.cardinality, this(concept.property), this(concept.value))
     if isinstance(concept, OneOf):
         return "{%s}" % (" %s " % _DL_SYNTAX.OR).join("%s" % (_.name if isinstance(_, owl.Thing) else _) for _ in concept.instances)
@@ -201,12 +200,12 @@ def dl_render_concept_str(concept: Union[Construct, EntityClass]) -> str:
         return "%s[%s]" % (concept.base_datatype.__name__, (" %s " % _DL_SYNTAX.COMMA).join(s))
     if isinstance(concept, PropertyChain):
         return (" %s " % _DL_SYNTAX.COMP).join(this(_) for _ in concept.properties)
-    if concept in owlready2.base._universal_datatype_2_abbrev:
-        iri = owlready2.base._universal_abbrev_2_iri.get(owlready2.base._universal_datatype_2_abbrev.get(concept))
+    if concept in owlready3.base._universal_datatype_2_abbrev:
+        iri = owlready3.base._universal_abbrev_2_iri.get(owlready3.base._universal_datatype_2_abbrev.get(concept))
         if iri.startswith("http://www.w3.org/2001/XMLSchema#"):
             return "xsd:" + iri[33:]
         hash, slash = iri.rindex('#'), iri.rindex('/')
         return iri[max(hash, slash)+1:]
-    if owlready2.rdfs_datatype in [_.storid for _ in concept.is_a]: # rdfs:Datatype
+    if owlready3.rdfs_datatype in [_.storid for _ in concept.is_a]: # rdfs:Datatype
         return concept.name
     raise NotImplemented

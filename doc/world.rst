@@ -1,14 +1,14 @@
 Worlds
 ======
 
-Owlready2 stores every triples in a 'World' object, and it can handles several Worlds
+Owlready3 stores every triples in a 'World' object, and it can handles several Worlds
 in parallel. 'default_world' is the World used by default.
 
 
 Persistent world: storing the quadstore in an SQLite3 file database
 -------------------------------------------------------------------
 
-Owlready2 uses an optimized quadstore. By default, the quadstore is stored in memory, but it can also be
+Owlready3 uses an optimized quadstore. By default, the quadstore is stored in memory, but it can also be
 stored in an SQLite3 file. This allows persistance: all ontologies loaded and created are stored in the file,
 and can be reused later.
 This is interesting for big ontologies: loading huge ontologies can take time, while opening the SQLite3 file
@@ -36,16 +36,16 @@ state of the quadstore in the SQLite3 file:
 
    >>> default_world.save()
 
-Storing the quadstore in a file does not reduce the performance of Owlready2 (actually,
-it seems that Owlready2 performs a little *faster* when storing the quadstore on the disk).
+Storing the quadstore in a file does not reduce the performance of Owlready3 (actually,
+it seems that Owlready3 performs a little *faster* when storing the quadstore on the disk).
 
 To reload an ontology stored in the quadstore (when the corresponding OWL file has been updated),
 the reload and reload_if_newer optional parameters of .load() can be used (the former reload the ontology,
 and the latter reload it only if the OWL file is more recent).
 
-By default, Owlready2 opens the SQLite3 database in exclusive mode. This mode is faster, but it does not allow
+By default, Owlready3 opens the SQLite3 database in exclusive mode. This mode is faster, but it does not allow
 several programs to use the same database simultaneously. If you need to have several Python programs that
-access simultaneously the same Owlready2 quadstore, you can disable the exclusive mode as follows:
+access simultaneously the same Owlready3 quadstore, you can disable the exclusive mode as follows:
 
 ::
 
@@ -56,7 +56,7 @@ access simultaneously the same Owlready2 quadstore, you can disable the exclusiv
 Using several isolated Worlds
 -----------------------------
 
-Owlready2 can support several, isolated, Worlds.
+Owlready3 can support several, isolated, Worlds.
 This is interesting if you want to load several version
 of the same ontology, for example before and after reasoning.
 
@@ -88,63 +88,46 @@ Finally, the reasoner can be executed on a specific World:
    >>> sync_reasoner(my_world)
 
 
-Performing SPARQL queries with pyoxigraph
+Performing SPARQL queries (rdflib bridge)
 -----------------------------------------
 
-Owlready2 uses an optimized RDF quadstore. This quadstore can be accessed as a
-pyoxigraph-backed graph object for performing SPARQL queries:
+Owlready3 uses an optimized RDF quadstore. With the optional ``rdflib`` backend
+installed (``pip install owlready3[rdflib]``), the quadstore can be queried with
+SPARQL through rdflib's engine. ``World.sparql()`` runs a query and returns
+Owlready3 objects:
 
 ::
 
-   >>> graph = default_world.as_sparql_graph()
-
-The returned object is an ``OxigraphGraph`` backed by
-`pyoxigraph <https://pyoxigraph.readthedocs.io/>`_, a fast Rust-based SPARQL
-engine. The store is built from the quadstore on the first query and cached
-automatically; subsequent queries reuse the cached store without rebuilding it.
-The cache is invalidated whenever a triple is added or removed.
-
-Performing a SPARQL query (returns raw pyoxigraph terms):
-
-::
-
-   >>> r = list(graph.query("""SELECT ?p WHERE {
+   >>> r = default_world.sparql("""SELECT ?p WHERE {
    ...   <http://www.semanticweb.org/jiba/ontologies/2017/0/test#ma_pizza>
    ...   <http://www.semanticweb.org/jiba/ontologies/2017/0/test#price> ?p .
-   ... }"""))
-
-The results can be automatically converted to Python/Owlready2 objects using
-``.query_owlready()`` instead of ``.query()``:
-
-::
-
-   >>> r = list(graph.query_owlready("""SELECT ?p WHERE {
-   ...   <http://www.semanticweb.org/jiba/ontologies/2017/0/test#ma_pizza>
-   ...   <http://www.semanticweb.org/jiba/ontologies/2017/0/test#price> ?p .
-   ... }"""))
-
-Namespace prefixes can be bound so they are available in queries:
-
-::
-
-   >>> graph.bind("test", "http://www.semanticweb.org/jiba/ontologies/2017/0/test#")
-   >>> r = list(graph.query_owlready("SELECT ?p WHERE { test:ma_pizza test:price ?p . }"))
-
-SPARQL UPDATE queries are also supported and automatically synced back to the
-quadstore:
-
-::
-
-   >>> graph.update("""INSERT DATA {
-   ...   <http://example.org/s> <http://example.org/p> <http://example.org/o> .
    ... }""")
 
-Triples can be added or removed directly using pyoxigraph terms:
+``sparql()`` dispatches on the query form: ``SELECT`` returns a list of rows
+(Owlready3 entities / Python values), ``ASK`` returns a ``bool``,
+``CONSTRUCT`` / ``DESCRIBE`` return an ``rdflib.Graph``, and ``UPDATE`` writes to
+the store. ``??1``, ``??2`` … in the query are substituted by the ``params``
+list (entities become their ``<IRI>``):
 
 ::
 
-   >>> import pyoxigraph
-   >>> ctx = graph.get_context(onto)
-   >>> ctx.add((pyoxigraph.NamedNode("http://example.org/s"),
-   ...          pyoxigraph.NamedNode("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
-   ...          pyoxigraph.NamedNode("http://www.w3.org/2002/07/owl#Class"))) 
+   >>> r = default_world.sparql("SELECT ?p WHERE { ??1 ??2 ?p . }", [ma_pizza, price])
+
+For lower-level access, ``World.as_rdflib_graph()`` returns a standard
+``rdflib.Graph`` backed by the live quadstore. It is a drop-in graph for any
+store-agnostic SPARQL tool — e.g. the `omny <https://pypi.org/project/omny/>`_
+helper (see :doc:`integration`):
+
+::
+
+   >>> graph = default_world.as_rdflib_graph()
+   >>> rows  = list(graph.query("SELECT ?c WHERE { ?c a owl:Class }"))   # raw rdflib terms
+   >>> rows  = list(graph.query_owlready("SELECT ?c WHERE { ?c a owl:Class }"))  # Owlready3 objects
+
+SPARQL ``UPDATE`` must run inside a ``with onto:`` block, which sets the target
+ontology for the new triples:
+
+::
+
+   >>> with onto:
+   ...     default_world.sparql("INSERT DATA { <http://example.org/C> a owl:Class }")

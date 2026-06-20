@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Owlready2
+# Owlready3
 # Copyright (C) 2013-2019 Jean-Baptiste LAMY
 # LIMICS (Laboratoire d'informatique médicale et d'ingénierie des connaissances en santé), UMR_S 1142
 # University Paris 13, Sorbonne paris-Cité, Bobigny, France
@@ -17,11 +17,11 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import owlready2
-from owlready2.namespace import *
-from owlready2.namespace import _cache_entity
-from owlready2.entity    import *
-from owlready2.entity    import _inherited_property_value_restrictions
+import owlready3
+from owlready3.namespace import *
+from owlready3.namespace import _cache_entity
+from owlready3.entity    import *
+from owlready3.entity    import _inherited_property_value_restrictions
 
 class _EquivalentToList(CallbackList):
   __slots__ = ["_indirect"]

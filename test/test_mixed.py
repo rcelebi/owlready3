@@ -1,4 +1,4 @@
-from owlready2 import *
+from owlready3 import *
 
 
 onto = get_ontology("http://www.semanticweb.org/jiba/ontologies/2017/2/test_mixed.owl")

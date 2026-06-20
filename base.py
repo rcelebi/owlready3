@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Owlready2
+# Owlready3
 # Copyright (C) 2013-2019 Jean-Baptiste LAMY
 # LIMICS (Laboratoire d'informatique médicale et d'ingénierie des connaissances en santé), UMR_S 1142
 # University Paris 13, Sorbonne paris-Cité, Bobigny, France
@@ -21,7 +21,7 @@ import sys, os, weakref, re, itertools
 from collections import defaultdict
 import datetime
 
-from owlready2.util import *
+from owlready3.util import *
 
 #_HERE = os.path.dirname(__file__)
 
@@ -48,7 +48,7 @@ def to_literal(o):
   return unparser(o), datatype
   
 def from_literal(o, d):
-  #from owlready2 import default_world
+  #from owlready3 import default_world
   #print(repr(o), repr(d), default_world._unabbreviate(d))
   if isinstance(d, str) and d.startswith("@"): return locstr(o, lang = d[1:])
   if d == 0: return o
@@ -189,7 +189,7 @@ def set_datatype_iri(datatype, iri):
   
 def declare_datatype(datatype, iri, parser, unparser):
   storid = _universal_abbrev(iri)
-  from owlready2 import WORLDS
+  from owlready3 import WORLDS
   for world in WORLDS:
     world.graph.execute("INSERT INTO resources VALUES (?,?)", (storid, iri))
     if world.graph._abbreviate_d:

@@ -1,0 +1,48 @@
+[build-system]
+requires = ["setuptools>=61", "Cython>=3"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "Owlready3"
+dynamic = ["version"]
+description = "Lightweight ontology-oriented programming in Python: load OWL 2.0 ontologies as Python objects, modify and save them, and reason via the native rustdl OWL 2 DL reasoner. Includes an optimized RDF quadstore."
+readme = "README.md"
+requires-python = ">=3.10"
+license = "LGPL-3.0-or-later"
+authors = [
+  { name = "Lamy Jean-Baptiste (Jiba)", email = "jibalamy@free.fr" },
+]
+keywords = ["ontology", "OWL", "RDF", "reasoner", "semantic web", "rustdl"]
+# Core is a self-contained in-memory OWL/RDF toolkit with zero third-party
+# dependencies. Reasoning (rustdl) and the rdflib graph/SPARQL bridge are
+# loosely-coupled, opt-in backends — install the extras below to enable them.
+dependencies = []
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Intended Audience :: Developers",
+  "Intended Audience :: Science/Research",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+  "Topic :: Scientific/Engineering :: Artificial Intelligence",
+  "Topic :: Software Development :: Libraries :: Python Modules",
+]
+
+[project.optional-dependencies]
+reasoning = ["rustdl"]                  # native OWL 2 DL reasoner (sync_reasoner)
+rdflib    = ["rdflib"]                  # World.as_rdflib_graph() + SPARQL bridge
+all       = ["rustdl", "rdflib"]
+
+[project.urls]
+Homepage = "https://github.com/rcelebi/owlready3"
+Repository = "https://github.com/rcelebi/owlready3"
+
+[tool.setuptools]
+package-dir = { "owlready3" = "." }
+packages = ["owlready3"]
+
+[tool.setuptools.package-data]
+owlready3 = ["owlready_ontology.owl"]
+
+[tool.setuptools.dynamic]
+version = { attr = "owlready3.VERSION" }

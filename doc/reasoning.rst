@@ -5,31 +5,21 @@ OWL reasoners can be used to check the *consistency* of an ontology, and to dedu
 typically be *reclassing* Individuals to new Classes, and Classes to new superclasses,
 depending on their relations.
 
-Several OWL reasoners exist; Owlready2 includes:
+Owlready3 performs reasoning with `rustdl <https://github.com/MaastrichtU-IDS/rustdl>`_, a
+native Rust OWL 2 DL (SROIQ) reasoner — **no Java Virtual Machine is required**.
 
-* a modified version of the `HermiT reasoner <http://hermit-reasoner.com/>`_,
-  developed by the department of Computer Science of the University of Oxford, and released under the LGPL licence.
+rustdl is an optional dependency; install it with::
 
-* a modified version of the `Pellet reasoner <https://github.com/stardog-union/pellet>`_,
-  released under the AGPL licence.
-  
-HermiT and Pellet are written in Java, and thus you need a Java Vitual Machine to perform reasoning in Owlready2.
+   pip install owlready3[reasoning]
 
-HermiT is used by default.
+rustdl supports class subsumption, equivalence, unsatisfiability and individual realization
+over the full OWL 2 DL constructs. It does **not** support SWRL rules, inferred
+property/data values (``infer_property_values``) or datatype-facet realization — these are
+accepted for API compatibility but ignored, with a warning. See :doc:`integration` for the
+full reasoning / querying / persistence stack (Owlready3 + rustdl + omny).
 
-
-Configuration
--------------
-
-Under Linux, Owlready should automatically find Java.
-
-Under windows, you may need to configure the location of the Java interpreter, as follows:
-
-::
-
-   >>> from owlready2 import *
-   >>> import owlready2
-   >>> owlready2.JAVA_EXE = "C:\\path\\to\\java.exe"
+The functions ``sync_reasoner_hermit()`` and ``sync_reasoner_pellet()`` remain as deprecated
+aliases that delegate to rustdl.
 
 
 Setting up everything
@@ -42,7 +32,7 @@ Here is an example creating a 'reasoning-ready' ontology:
 
 ::
 
-   >>> from owlready2 import *
+   >>> from owlready3 import *
    
    >>> onto = get_ontology("http://test.org/onto.owl")
    
@@ -84,7 +74,7 @@ Here is an example creating a 'reasoning-ready' ontology:
 Running the reasoner
 --------------------
 
-The reasoner (HermiT) is simply run by calling the sync_reasoner() global function:
+The reasoner (rustdl) is simply run by calling the sync_reasoner() global function:
 
 ::
 
@@ -109,26 +99,19 @@ The reasoner can also be limited to some ontologies:
 
    >>> sync_reasoner([onto1, onto2,...])
 
-If you also want to infer object property values, use the "infer_property_values" parameter:
+.. note::
 
-::
-
-   >>> sync_reasoner(infer_property_values = True)
-
-To use Pellet instead of HermiT, just use the sync_reasoner_pellet() function instead.
-
-In addition, Pellet also supports the inference of data property values, using the "infer_data_property_values" parameter:
-
-::
-
-   >>> sync_reasoner(infer_property_values = True, infer_data_property_values = True)
-
+   rustdl is a DL classifier: it infers class subsumptions, equivalences and individual
+   types, but does **not** materialize inferred object/data property values. The
+   ``infer_property_values`` / ``infer_data_property_values`` parameters are therefore
+   accepted but ignored (with a warning). For property-value or SWRL-rule inference, use a
+   Java reasoner in upstream Owlready2.
 
 
 Results of the automatic classification
 ---------------------------------------
 
-Owlready automatically gets the results of the reasoning from HermiT and reclassifies Individuals and Classes,
+Owlready automatically gets the results of the reasoning from rustdl and reclassifies Individuals and Classes,
 *i.e* Owlready changes the Classes of Individuals and the superclasses of Classes.
 
 ::

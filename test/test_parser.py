@@ -22,23 +22,23 @@ def make_variants(orig_filename, force_variant = None):
     open("/tmp/t.rdf", "wb").write(b)
     yield "original"
     
-  if (not force_variant) or (force_variant == "owlready2-ntriples"):
-    print("Test %s %s ..." % (orig_filename, "owlready2-ntriples"))
+  if (not force_variant) or (force_variant == "owlready3-ntriples"):
+    print("Test %s %s ..." % (orig_filename, "owlready3-ntriples"))
     rm("/tmp/t.rdf")
-    do("""python -c 'from owlready2 import *;\
+    do("""python -c 'from owlready3 import *;\
     onto = get_ontology("file://%s").load();\
     onto.save("/tmp/t.rdf",  format = "ntriples");\
     '""" % orig_filename)
-    yield "owlready2-ntriples"
+    yield "owlready3-ntriples"
     
-  if (not force_variant) or (force_variant == "owlready2-rdfxml"):
-    print("Test %s %s ..." % (orig_filename, "owlready2-rdfxml"))
+  if (not force_variant) or (force_variant == "owlready3-rdfxml"):
+    print("Test %s %s ..." % (orig_filename, "owlready3-rdfxml"))
     rm("/tmp/t.rdf")
-    do("""python -c 'from owlready2 import *;\
+    do("""python -c 'from owlready3 import *;\
     onto = get_ontology("file://%s").load();\
     onto.save("/tmp/t.rdf", format = "rdfxml");\
     '""" % orig_filename)
-    yield "owlready2-rdfxml"
+    yield "owlready3-rdfxml"
     
   if (not force_variant) or (force_variant == "rapper-ntriples"):
     print("Test %s %s ..." % (orig_filename, "rapper-ntriples"))
@@ -103,8 +103,8 @@ def control(filename): rapper(filename, "/tmp/control.nt")
 def test(filename, variant):
   rm("/tmp/py.nt")
   rm("/tmp/py.rdf")
-  #do("python ./owlready2/rdfxml_2_ntriples.py %s > /tmp/py.nt 2> /dev/null" % tmp_filename)
-  do("""python -c 'from owlready2 import *;\
+  #do("python ./owlready3/rdfxml_2_ntriples.py %s > /tmp/py.nt 2> /dev/null" % tmp_filename)
+  do("""python -c 'from owlready3 import *;\
   onto = get_ontology("file:///tmp/t.rdf").load();\
   onto.save("/tmp/py.nt",  format = "ntriples");\
   onto.save("/tmp/py.rdf", format = "rdfxml");\
@@ -140,9 +140,9 @@ elif len(sys.argv) > 1:
   
 else:
   rdf_files = [
-    "/home/jiba/src/owlready2/test/test.owl",
-    "/home/jiba/src/owlready2/test/test_ns.owl",
-    "/home/jiba/src/owlready2/test/test_breakline.owl",
+    "/home/jiba/src/owlready3/test/test.owl",
+    "/home/jiba/src/owlready3/test/test_ns.owl",
+    "/home/jiba/src/owlready3/test/test_breakline.owl",
     "/home/jiba/telechargements/base_med/aeo.owl",
     "/home/jiba/telechargements/base_med/agro.owl",
     "/home/jiba/telechargements/base_med/bfo.owl",

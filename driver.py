@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Owlready2
+# Owlready3
 # Copyright (C) 2017-2019 Jean-Baptiste LAMY
 # LIMICS (Laboratoire d'informatique médicale et d'ingénierie des connaissances en santé), UMR_S 1142
 # University Paris 13, Sorbonne paris-Cité, Bobigny, France
@@ -19,14 +19,13 @@
 
 from functools import lru_cache
 
-import owlready2
-from owlready2.base import *
-from owlready2.base import _universal_datatype_2_abbrev
+import owlready3
+from owlready3.base import *
 
-owlready2_optimized = None
-try: import owlready2_optimized
+owlready3_optimized = None
+try: import owlready3_optimized
 except:
-  print("* Owlready2 * Warning: optimized Cython parser module 'owlready2_optimized' is not available, defaulting to slower Python implementation", file = sys.stderr)
+  print("* Owlready3 * Warning: optimized Cython parser module 'owlready3_optimized' is not available, defaulting to slower Python implementation", file = sys.stderr)
   pass
 
 
@@ -133,8 +132,8 @@ class BaseSubGraph(BaseGraph):
       
       try:
         current_line = 0
-        if owlready2_optimized:
-          owlready2_optimized.parse_ntriples(f, objs, datas, insert_objs, insert_datas, _abbreviate, new_blank, default_base)
+        if owlready3_optimized:
+          owlready3_optimized.parse_ntriples(f, objs, datas, insert_objs, insert_datas, _abbreviate, new_blank, default_base)
           
         else:
           splitter = re.compile("\s")
@@ -186,11 +185,11 @@ class BaseSubGraph(BaseGraph):
     elif format == "rdfxml":
       objs, datas, on_prepare_obj, on_prepare_data, insert_objs, insert_datas, new_blank, _abbreviate, on_finish = self.create_parse_func(getattr(f, "name", ""), delete_existing_triples)
       try:
-        if owlready2_optimized:
-          owlready2_optimized.parse_rdfxml(f, objs, datas, insert_objs, insert_datas, _abbreviate, new_blank, default_base)
+        if owlready3_optimized:
+          owlready3_optimized.parse_rdfxml(f, objs, datas, insert_objs, insert_datas, _abbreviate, new_blank, default_base)
         else:
-          import owlready2.rdfxml_2_ntriples
-          owlready2.rdfxml_2_ntriples.parse(f, on_prepare_obj, on_prepare_data, new_blank, default_base)
+          import owlready3.rdfxml_2_ntriples
+          owlready3.rdfxml_2_ntriples.parse(f, on_prepare_obj, on_prepare_data, new_blank, default_base)
         onto_base_iri = on_finish()
       except OwlReadyOntologyParsingError as e:
         if len(self) == 0: self._add_obj_triple_raw_spo(self.onto.storid, rdf_type, owl_ontology)
@@ -199,11 +198,11 @@ class BaseSubGraph(BaseGraph):
     elif format == "owlxml":
       objs, datas, on_prepare_obj, on_prepare_data, insert_objs, insert_datas, new_blank, _abbreviate, on_finish = self.create_parse_func(getattr(f, "name", ""), delete_existing_triples)
       try:
-        if owlready2_optimized:
-          owlready2_optimized.parse_owlxml(f, objs, datas, insert_objs, insert_datas, _abbreviate, new_blank, default_base)
+        if owlready3_optimized:
+          owlready3_optimized.parse_owlxml(f, objs, datas, insert_objs, insert_datas, _abbreviate, new_blank, default_base)
         else:
-          import owlready2.owlxml_2_ntriples
-          owlready2.owlxml_2_ntriples.parse(f, on_prepare_obj, on_prepare_data, new_blank, default_base)
+          import owlready3.owlxml_2_ntriples
+          owlready3.owlxml_2_ntriples.parse(f, on_prepare_obj, on_prepare_data, new_blank, default_base)
         onto_base_iri = on_finish()
       except OwlReadyOntologyParsingError as e:
         if len(self) == 0: self._add_obj_triple_raw_spo(self.onto.storid, rdf_type, owl_ontology)

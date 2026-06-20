@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Owlready2
+# Owlready3
 # Copyright (C) 2007-2019 Jean-Baptiste LAMY
 # LIMICS (Laboratoire d'informatique médicale et d'ingénierie des connaissances en santé), UMR_S 1142
 # University Paris 13, Sorbonne paris-Cité, Bobigny, France
@@ -22,9 +22,9 @@ __all__ = ["start_observing", "stop_observing", "observe", "unobserve", "isobser
 
 import weakref
 
-from owlready2.base import rdf_type, rdfs_subclassof, owl_equivalentclass, owl_equivalentproperty, owl_equivalentindividual
-from owlready2.namespace import Ontology
-from owlready2 import Thing, ThingClass
+from owlready3.base import rdf_type
+from owlready3.namespace import Ontology
+from owlready3 import Thing, ThingClass
 
 class ObservedOntology(Ontology):
   def _get_pred_value_obj(self, subject, predicate):
@@ -264,8 +264,6 @@ class StoridList(object):
     return """<StoridList: %s>""" % list(self)
   
 
-
-from owlready2.util import FirstList
 class InstancesOfClass(StoridList):
   storid = 0 # Fake storid
   

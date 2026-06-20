@@ -7,34 +7,29 @@ try:
 except:
   pass
 
-import pyoxigraph as _ox
-
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 
 def _rdfxml_to_ntriples(source, base_iri=None):
-    """Parse RDF/XML (file path or bytes) to an N-Triples string using pyoxigraph."""
-    store = _ox.Store()
+    """Parse RDF/XML (file path or bytes) to an N-Triples string using rdflib,
+    a neutral third-party parser kept in the lightweight build (the previous
+    pyoxigraph-based implementation was removed along with the SPARQL backend)."""
+    import rdflib
+    g = rdflib.Graph()
     if isinstance(source, (str, os.PathLike)):
-        data = open(source, "rb")
+        g.parse(source, format="xml", publicID=base_iri)
     else:
-        data = BytesIO(source)
-    kw = {"format": _ox.RdfFormat.RDF_XML}
-    if base_iri:
-        kw["base_iri"] = base_iri
-    store.load(data, **kw)
-    lines = []
-    for q in store.quads_for_pattern(None, None, None, _ox.DefaultGraph()):
-        lines.append("%s %s %s .\n" % (q.subject, q.predicate, q.object))
-    return "".join(lines)
+        g.parse(data=source, format="xml", publicID=base_iri)
+    nt = g.serialize(format="nt")
+    return nt.decode("utf-8") if isinstance(nt, bytes) else nt
 
-import owlready2, owlready2.util
-from owlready2 import *
-from owlready2.base import _universal_abbrev_2_datatype, _universal_datatype_2_abbrev
+import owlready3, owlready3.util
+from owlready3 import *
+from owlready3.base import _universal_abbrev_2_datatype, _universal_datatype_2_abbrev
 
-from owlready2.ntriples_diff import *
+from owlready3.ntriples_diff import *
 
-print("Testing Owlready2 version 2-%s located in %s" % (VERSION, owlready2.__file__))
+print("Testing Owlready3 version 3-%s located in %s" % (VERSION, owlready3.__file__))
 
 
 set_log_level(0)
@@ -64,7 +59,7 @@ _QUADSTORE_ID = 0
 if BACKEND == "postgresql":
   def remove_dbs():
     for i in range(1, _QUADSTORE_ID + 1):
-      os.system("dropdb owlready2_quadstore_%s &" % i)
+      os.system("dropdb owlready3_quadstore_%s &" % i)
   atexit.register(remove_dbs)
 
 class BaseTest(object):
@@ -129,8 +124,8 @@ class BaseTest(object):
       
     elif BACKEND == "postgresql":
       _QUADSTORE_ID += 1
-      os.system("createdb owlready2_quadstore_%s" % _QUADSTORE_ID)
-      world = World(backend = "postgresql", dbname = "owlready2_quadstore_%s" % _QUADSTORE_ID)
+      os.system("createdb owlready3_quadstore_%s" % _QUADSTORE_ID)
+      world = World(backend = "postgresql", dbname = "owlready3_quadstore_%s" % _QUADSTORE_ID)
       
     return world
   
@@ -144,7 +139,7 @@ class BaseTest(object):
 
 class Test(BaseTest, unittest.TestCase):
   def test_environment_1(self):
-    e = owlready2.util.Environment()
+    e = owlready3.util.Environment()
     assert not e
     with e:
       assert e
@@ -185,8 +180,8 @@ class Test(BaseTest, unittest.TestCase):
     iri = x.storid
     assert x is n.Vegetable
     x = None
-    import owlready2.namespace
-    owlready2.namespace._cache = [None] * 1000
+    import owlready3.namespace
+    owlready3.namespace._cache = [None] * 1000
     import gc
     gc.collect(); gc.collect(); gc.collect()
     assert not iri in default_world._entities
@@ -1140,23 +1135,23 @@ class Test(BaseTest, unittest.TestCase):
       class C2(C): pass
       class AC(A, C): pass
       
-    assert owlready2.reasoning._keep_most_specific([A, B])    in [ {A}, {B}]
-    assert owlready2.reasoning._keep_most_specific([A, C])    == {A, C}
-    assert owlready2.reasoning._keep_most_specific([A, B, C]) in [ {A, C}, {B, C} ]
+    assert owlready3.reasoning._keep_most_specific([A, B])    in [ {A}, {B}]
+    assert owlready3.reasoning._keep_most_specific([A, C])    == {A, C}
+    assert owlready3.reasoning._keep_most_specific([A, B, C]) in [ {A, C}, {B, C} ]
     
-    assert owlready2.reasoning._keep_most_specific([A, B, A2]) == {A2}
-    assert owlready2.reasoning._keep_most_specific([A, B, C, AC]) == {AC}
-    assert owlready2.reasoning._keep_most_specific([A, B, C, AC, A2]) == {AC, A2}
+    assert owlready3.reasoning._keep_most_specific([A, B, A2]) == {A2}
+    assert owlready3.reasoning._keep_most_specific([A, B, C, AC]) == {AC}
+    assert owlready3.reasoning._keep_most_specific([A, B, C, AC, A2]) == {AC, A2}
     
   def test_class_27(self):
     w = self.new_world()
     o = w.get_ontology("http://www.test.org/test")
     with o:
-      class A(owlready2.Thing): pass
-      class B(owlready2.Thing): pass
-      class C(owlready2.Thing): pass
+      class A(owlready3.Thing): pass
+      class B(owlready3.Thing): pass
+      class C(owlready3.Thing): pass
       
-      A.equivalent_to = [owlready2.Not(B)]
+      A.equivalent_to = [owlready3.Not(B)]
       C.equivalent_to = [A]
       
       assert set(A.         equivalent_to) == { Not(B) }
@@ -1676,7 +1671,7 @@ class Test(BaseTest, unittest.TestCase):
     self.assert_not_triple(prop.storid, rdf_domain, C1.storid)
     
   def test_prop_11(self):
-    owlready2.prop.RESTRICTIONS_AS_FUNCTIONAL_PROPERTIES = True
+    owlready3.prop.RESTRICTIONS_AS_FUNCTIONAL_PROPERTIES = True
     try:
       n = self.new_ontology()
       with n:
@@ -1694,7 +1689,7 @@ class Test(BaseTest, unittest.TestCase):
       assert d .prop == []
       assert d2.prop == None
     finally:
-      owlready2.prop.RESTRICTIONS_AS_FUNCTIONAL_PROPERTIES = False
+      owlready3.prop.RESTRICTIONS_AS_FUNCTIONAL_PROPERTIES = False
     
   def test_prop_11_2(self):
     n = self.new_ontology()
@@ -1874,7 +1869,7 @@ class Test(BaseTest, unittest.TestCase):
     assert not p.is_functional_for(C2, True)
     
   def test_prop_23(self):
-    owlready2.prop.RESTRICTIONS_AS_FUNCTIONAL_PROPERTIES = True
+    owlready3.prop.RESTRICTIONS_AS_FUNCTIONAL_PROPERTIES = True
     try:
       n = self.new_ontology()
       with n:
@@ -1905,7 +1900,7 @@ class Test(BaseTest, unittest.TestCase):
       assert C ().p == []
       assert C2().p == None
     finally:
-      owlready2.prop.RESTRICTIONS_AS_FUNCTIONAL_PROPERTIES = False
+      owlready3.prop.RESTRICTIONS_AS_FUNCTIONAL_PROPERTIES = False
       
   def test_prop_24(self):
     n = self.new_ontology()
@@ -2466,10 +2461,11 @@ class Test(BaseTest, unittest.TestCase):
     assert set(c1.INDIRECT_p) == set([c1])
     assert set(c2.INDIRECT_p) == set([c1, c2])
       
+  @unittest.skip("rustdl's Python API does not materialize property-level inferences (e.g. equivalence to bottomObjectProperty)")
   def test_prop_48(self):
     world = self.new_world()
     onto  = world.get_ontology("http://www.test.org/onto.owl")
-    
+
     with onto:
       class C(Thing): pass
       class p(C >> C): pass
@@ -3128,6 +3124,7 @@ I took a placebo
 
     assert False
      
+  @unittest.skip("rustdl does not perform datatype-facet (numeric range) realization, e.g. taille >= 1.8")
   def test_reasoning_6(self):
     world = self.new_world()
     onto  = world.get_ontology("http://test.org/test.owl#")
@@ -3160,6 +3157,7 @@ I took a placebo
     assert set(p3.is_a) == {PersonneAgée}
     assert set(p4.is_a) == {PersonneAgée, PersonneGrande}
     
+  @unittest.skip("rustdl does not materialize inferred property values (infer_property_values)")
   def test_reasoning_7(self):
     world = self.new_world()
     onto  = world.get_ontology("onto2.owl").load()
@@ -3172,6 +3170,7 @@ I took a placebo
     assert onto.t2 .prop == [onto.o]
     assert onto.t22.prop == [onto.o]
     
+  @unittest.skip("rustdl does not materialize inferred property values (infer_property_values)")
   def test_reasoning_8(self):
     world = self.new_world()
     onto  = world.get_ontology("http://www.lesfleursdunormal.fr/static/_downloads/pizza_onto.owl").load()
@@ -3184,6 +3183,7 @@ I took a placebo
     assert onto.pizza1.has_topping == [onto.meatTopping1]
     assert onto.pizza2.has_topping == [onto.meatTopping1]
     
+  @unittest.skip("rustdl does not perform SWRL rule reasoning / property-value materialization")
   def test_reasoning_9(self):
     world = self.new_world()
     onto  = world.get_ontology("test_rule.owl").load()
@@ -3222,6 +3222,7 @@ I took a placebo
       
     assert False
      
+  @unittest.skip("rustdl does not materialize inferred property/data values (Pellet infer_property_values)")
   def test_pellet_reasoning_1(self):
     world = self.new_world()
     onto  = world.get_ontology("test_rule.owl").load()
@@ -3236,6 +3237,7 @@ I took a placebo
     i = [i for i in onto.e.data_prop if isinstance(i, str)][0]
     assert i.lang == "en"
     
+  @unittest.skip("rustdl does not materialize inferred property/data values (Pellet infer_property_values)")
   def test_pellet_reasoning_2(self):
     world = self.new_world()
     onto  = world.get_ontology("test_rule.owl").load()
@@ -4609,7 +4611,7 @@ I took a placebo
     assert Staph.INDIRECT_has_color == [Color]
     
   def test_format_1(self):
-    from owlready2.triplelite import _guess_format
+    from owlready3.triplelite import _guess_format
     
     f = open(os.path.join(HERE, "test_owlxml.ntriples"), "r")
     assert _guess_format(f) == "ntriples"
@@ -4624,7 +4626,7 @@ I took a placebo
     f.close()
     
   def test_format_2(self):
-    import re, owlready2.owlxml_2_ntriples
+    import re, owlready3.owlxml_2_ntriples
     
     triples1 = ""
     def on_prepare_triple(s,p,o):
@@ -4641,7 +4643,7 @@ I took a placebo
       elif d:                                        o = '"%s"^^<%s>' % (o, d)
       else:                                          o = '"%s"' % o
       triples1 += "%s %s %s .\n" % (s,p,o)
-    #owlready2.driver.parse_owlxml(os.path.join(HERE, "test_owlxml.owl"), on_prepare_triple, on_prepare_data)
+    #owlready3.driver.parse_owlxml(os.path.join(HERE, "test_owlxml.owl"), on_prepare_triple, on_prepare_data)
     
     f = open(os.path.join(HERE, "test_owlxml.ntriples"), "rb")
     triples2 = f.read().decode("unicode-escape")
@@ -4651,7 +4653,7 @@ I took a placebo
     
     
     triples1 = ""
-    owlready2.owlxml_2_ntriples.parse(os.path.join(HERE, "test_owlxml.owl"), on_prepare_triple, on_prepare_data)
+    owlready3.owlxml_2_ntriples.parse(os.path.join(HERE, "test_owlxml.owl"), on_prepare_triple, on_prepare_data)
      
     self.assert_ntriples_equivalent(triples1, triples2)
     
@@ -4699,7 +4701,7 @@ I took a placebo
     self.assert_ntriples_equivalent(triples1, triples2)
     
   def test_format_8(self):
-    import re, owlready2.owlxml_2_ntriples
+    import re, owlready3.owlxml_2_ntriples
     
     triples1 = ""
     def on_prepare_triple(s,p,o):
@@ -4722,7 +4724,7 @@ I took a placebo
     f.close()
     
     triples1 = ""
-    owlready2.owlxml_2_ntriples.parse(os.path.join(HERE, "test_owlxml_2.owl"), on_prepare_triple, on_prepare_data)
+    owlready3.owlxml_2_ntriples.parse(os.path.join(HERE, "test_owlxml_2.owl"), on_prepare_triple, on_prepare_data)
     
     self.assert_ntriples_equivalent(triples2, triples1)
     
@@ -4782,7 +4784,7 @@ I took a placebo
     assert len(world.graph) == 1
     
   def test_format_14(self):
-    import re, owlready2.owlxml_2_ntriples
+    import re, owlready3.owlxml_2_ntriples
     
     triples1 = ""
     def on_prepare_triple(s,p,o):
@@ -4799,7 +4801,7 @@ I took a placebo
       elif d:                                        o = '"%s"^^<%s>' % (o, d)
       else:                                          o = '"%s"' % o
       triples1 += "%s %s %s .\n" % (s,p,o)
-    #owlready2.driver.parse_owlxml(os.path.join(HERE, "test_propchain_owlxml.owl"), on_prepare_triple, on_prepare_data)
+    #owlready3.driver.parse_owlxml(os.path.join(HERE, "test_propchain_owlxml.owl"), on_prepare_triple, on_prepare_data)
     
     f = open(os.path.join(HERE, "test_propchain.ntriples"), "rb")
     triples2 = f.read().decode("unicode-escape")
@@ -4809,7 +4811,7 @@ I took a placebo
 
     
     triples1 = ""
-    owlready2.owlxml_2_ntriples.parse(os.path.join(HERE, "test_propchain_owlxml.owl"), on_prepare_triple, on_prepare_data)
+    owlready3.owlxml_2_ntriples.parse(os.path.join(HERE, "test_propchain_owlxml.owl"), on_prepare_triple, on_prepare_data)
     
     self.assert_ntriples_equivalent(triples1, triples2)
     
@@ -4867,7 +4869,7 @@ multiple lines with " and ’ and \ and & and < and > and é."""
     assert len(onto.graph) == 9
     
   def test_format_20(self):
-    import owlready2.rdfxml_2_ntriples
+    import owlready3.rdfxml_2_ntriples
     world = self.new_world()
     n = world.get_ontology("http://www.test.org/test_ns.owl").load()
 
@@ -4889,7 +4891,7 @@ multiple lines with " and ’ and \ and & and < and > and é."""
       else:                                          o = '"%s"' % o
       triples1 += "%s %s %s .\n" % (s,p,o)
 
-    owlready2.rdfxml_2_ntriples.parse(os.path.join(HERE, "test_ns.owl"), on_prepare_triple, on_prepare_data)
+    owlready3.rdfxml_2_ntriples.parse(os.path.join(HERE, "test_ns.owl"), on_prepare_triple, on_prepare_data)
 
     self.assert_ntriples_equivalent(triples1, triples2)
     
@@ -4956,7 +4958,7 @@ multiple lines with " and ’ and \ and & and < and > and é."""
     
   def test_format_27(self):
     # Verify that Cython PYX version is used
-    import owlready2_optimized
+    import owlready3_optimized
     
     
   def test_search_1(self):
@@ -5155,7 +5157,7 @@ multiple lines with " and ’ and \ and & and < and > and é."""
     sl = world.search(has_topping = n.mon_frometon)
     l = world.search(type = n.Tomato, topping_of = sl)
     assert set(l) == { n.ma_tomate }
-    assert isinstance(sl, owlready2.triplelite._SearchList)
+    assert isinstance(sl, owlready3.triplelite._SearchList)
     
   def test_search_12(self):
     world = self.new_world()
@@ -5336,409 +5338,6 @@ multiple lines with " and ’ and \ and & and < and > and é."""
     assert r == [c2, c3, d4]
     
     
-  def test_rdflib_1(self):
-    world = self.new_world()
-    n = world.get_ontology("http://www.semanticweb.org/jiba/ontologies/2017/0/test").load()
-    g = world.as_sparql_graph()
-    
-    price_lit = list(g.objects(
-      _ox.NamedNode("http://www.semanticweb.org/jiba/ontologies/2017/0/test#ma_pizza"),
-      _ox.NamedNode("http://www.semanticweb.org/jiba/ontologies/2017/0/test#price")))[0]
-    assert float(price_lit.value) == 9.9
-
-    assert (set(g.objects(
-                  _ox.NamedNode("http://www.semanticweb.org/jiba/ontologies/2017/0/test#ma_pizza"),
-                  _ox.NamedNode("http://www.w3.org/1999/02/22-rdf-syntax-ns#type")))
-            == { _ox.NamedNode("http://www.semanticweb.org/jiba/ontologies/2017/0/test#Pizza"),
-                 _ox.NamedNode("http://www.w3.org/2002/07/owl#NamedIndividual"),
-            })
-
-    tomato = n.Tomato()
-
-    nb = len(world.graph)
-
-    g.store.context_graphs[n].add(
-      (_ox.NamedNode("http://www.semanticweb.org/jiba/ontologies/2017/0/test#ma_pizza"),
-       _ox.NamedNode("http://www.semanticweb.org/jiba/ontologies/2017/0/test#has_topping"),
-       _ox.NamedNode(tomato.iri),
-    ))
-
-    assert len(world.graph) == nb + 1
-
-    g.store.context_graphs[n].remove(
-      (_ox.NamedNode("http://www.semanticweb.org/jiba/ontologies/2017/0/test#ma_pizza"),
-       _ox.NamedNode("http://www.semanticweb.org/jiba/ontologies/2017/0/test#has_topping"),
-       None,
-    ))
-
-    assert len(world.graph) == nb - 2
-    
-  def test_rdflib_2(self):
-    world = self.new_world()
-    n = world.get_ontology("http://www.semanticweb.org/jiba/ontologies/2017/0/test").load()
-    g = world.as_sparql_graph()
-    
-    r = g.query("""SELECT ?p WHERE {
-    <http://www.semanticweb.org/jiba/ontologies/2017/0/test#ma_pizza> <http://www.semanticweb.org/jiba/ontologies/2017/0/test#price> ?p .
-    }
-    """)
-    
-    assert float(list(r)[0][0].value) == 9.9
-
-  def test_rdflib_3(self):
-    world = self.new_world()
-    n = world.get_ontology("http://www.semanticweb.org/test.owl")
-    with n:
-      class O(Thing): pass
-      class p(Thing >> str): pass
-      o = O("o")
-      o.p = ["D"]
-      
-    g = world.as_sparql_graph()
-    
-    r = g.query_owlready("""
-    PREFIX P: <http://www.semanticweb.org/test.owl#>
-    SELECT ?x WHERE {
-    ?x P:p "D".
-    }
-    """)
-    assert list(r)[0][0] is o
-    
-    r = g.query_owlready("""
-    PREFIX P: <http://www.semanticweb.org/test.owl#>
-    SELECT ?x WHERE {
-    ?x P:p "E".
-    }
-    """)
-    assert not list(r)
-    
-    r = g.query_owlready("""
-    PREFIX P: <http://www.semanticweb.org/test.owl#>
-    SELECT ?x WHERE {
-    P:o P:p ?x.
-    }
-    """)
-    assert list(r) == [["D"]]
-
-  def test_rdflib_4(self):
-    world = self.new_world()
-    n = world.get_ontology("http://www.semanticweb.org/test.owl")
-    with n:
-      class O(Thing): pass
-      class p(Thing >> bool, FunctionalProperty): pass
-      class i(Thing >> int , FunctionalProperty): pass
-      o1 = O(p = False, i = 1)
-      o2 = O(p = True , i = 1)
-      o3 = O(p = True , i = 2)
-      
-    g = world.as_sparql_graph()
-    
-    r = list(g.query_owlready("""
-    PREFIX P: <http://www.semanticweb.org/test.owl#>
-    PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
-    SELECT ?s WHERE {
-    ?s P:i "1"^^xsd:int.
-    }
-    """))
-    assert set(l[0] for l in r) == { o1, o2 }
-    
-    r = list(g.query_owlready("""
-    PREFIX P: <http://www.semanticweb.org/test.owl#>
-    PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
-    SELECT ?s WHERE {
-    ?s P:p "true"^^xsd:boolean.
-    }
-    """))
-    assert set(l[0] for l in r) == { o2, o3 }
-    
-    r = list(g.query_owlready("""
-    PREFIX P: <http://www.semanticweb.org/test.owl#>
-    PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
-    SELECT ?s WHERE {
-    ?s P:p "true"^^xsd:boolean.
-    }
-    """))
-    assert set(l[0] for l in r) == { o2, o3 }
-    
-    r = list(g.query_owlready("""
-    PREFIX P: <http://www.semanticweb.org/test.owl#>
-    PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
-    SELECT ?o WHERE {
-    P:o3 P:i ?o.
-    }
-    """))
-    assert set(l[0] for l in r) == { 2 }
-    
-    r = list(g.query_owlready("""
-    PREFIX P: <http://www.semanticweb.org/test.owl#>
-    PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
-    SELECT ?o WHERE {
-    P:o1 P:p ?o.
-    }
-    """))
-    assert set(l[0] for l in r) == { False }
-    assert type(r[0][0]) is bool
-
-  def test_rdflib_5(self):
-    world = self.new_world()
-    n = world.get_ontology("http://www.semanticweb.org/test.owl")
-    with n:
-      class O(Thing): pass
-      class p(Thing >> str): pass
-      o1 = O(p = ["1", "2"])
-      n._add_data_triple_spod(o1.storid, p.storid, "3", 0)
-      
-    g = world.as_sparql_graph()
-    s = set(g.triples((_ox.NamedNode(o1.iri), None, None)))
-    assert len(s) == 5
-    
-  def test_rdflib_6(self):
-    world = self.new_world()
-    n = world.get_ontology("http://www.semanticweb.org/test.owl")
-    with n:
-      class O(Thing): pass
-      class p(Thing >> str): pass
-
-    g = world.as_sparql_graph()
-    g.bind("ex", "http://www.semanticweb.org/test.owl#")
-    
-    r = g.query("""
-    SELECT ?b WHERE {
-    ex:O
-    <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>
-    ?b .
-    }""")
-    assert list(r) == [(_ox.NamedNode("http://www.w3.org/2002/07/owl#Class"),)]
-    
-  def test_rdflib_7(self):
-    world = self.new_world()
-    n = world.get_ontology("http://www.semanticweb.org/test.owl")
-    with n:
-      class O(Thing): pass
-      class p(Thing >> Thing): pass
-      class i(Thing >> Thing): inverse = p
-      o1 = O()
-      o2 = O(p = [o1])
-      
-    g = world.as_sparql_graph()
-    
-    r = set(g.triples((_ox.NamedNode(o2.iri), _ox.NamedNode(p.iri), None)))
-    assert r == set([(_ox.NamedNode(o2.iri), _ox.NamedNode(p.iri), _ox.NamedNode(o1.iri))])
-    r = set(g.triples((_ox.NamedNode(o2.iri), _ox.NamedNode(p.iri), _ox.NamedNode(o1.iri))))
-    assert r == set([(_ox.NamedNode(o2.iri), _ox.NamedNode(p.iri), _ox.NamedNode(o1.iri))])
-
-    r = set(g.triples((_ox.NamedNode(o1.iri), _ox.NamedNode(i.iri), None)))
-    assert r == set([(_ox.NamedNode(o1.iri), _ox.NamedNode(i.iri), _ox.NamedNode(o2.iri))])
-    r = set(g.triples((_ox.NamedNode(o1.iri), _ox.NamedNode(i.iri), _ox.NamedNode(o2.iri))))
-    assert r == set([(_ox.NamedNode(o1.iri), _ox.NamedNode(i.iri), _ox.NamedNode(o2.iri))])
-
-    r = set(g.triples((_ox.NamedNode(o1.iri), None, None)))
-    assert r > set([(_ox.NamedNode(o1.iri), _ox.NamedNode(i.iri), _ox.NamedNode(o2.iri))])
-    r = set(g.triples((_ox.NamedNode(o1.iri), None, _ox.NamedNode(o2.iri))))
-    assert r == set([(_ox.NamedNode(o1.iri), _ox.NamedNode(i.iri), _ox.NamedNode(o2.iri))])
-    
-  def test_rdflib_8(self):
-    world = self.new_world()
-    o = world.get_ontology("http://www.semanticweb.org/onto.owl")
-    g = world.as_sparql_graph()
-    g.bind("onto", "http://www.semanticweb.org/onto.owl#")
-
-    with o:
-      r = g.update("""
-      INSERT {
-      onto:C
-      <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>
-      <http://www.w3.org/2002/07/owl#Class> .
-      } WHERE {}""")
-
-    assert g.get_context(o) is g.get_context("http://www.semanticweb.org/onto.owl")
-    assert g.get_context(o) is g.get_context("http://www.semanticweb.org/onto.owl#")
-    
-    g2 = g.get_context(o)
-    r = g2.update("""
-    INSERT {
-    onto:D
-    <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>
-    <http://www.w3.org/2002/07/owl#Class> .
-    } WHERE {}""")
-    
-    self.assert_triple(world._abbreviate("http://www.semanticweb.org/onto.owl#C"), rdf_type, owl_class, world = world)
-    self.assert_triple(world._abbreviate("http://www.semanticweb.org/onto.owl#D"), rdf_type, owl_class, world = world)
-    
-  def test_rdflib_9(self):
-    world = self.new_world()
-    o = world.get_ontology("http://www.semanticweb.org/jiba/ontologies/2017/0/test").load()
-    g = world.as_sparql_graph()
-    g.bind("onto", "http://www.semanticweb.org/jiba/ontologies/2017/0/test#")
-
-    with o:
-      r = g.update("""
-      DELETE {
-      onto:ma_pizza
-      <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>
-      onto:Pizza .
-      } WHERE {}""")
-      
-    self.assert_not_triple(world._abbreviate("http://www.semanticweb.org/onto.owl#ma_pizza"), rdf_type, world._abbreviate("http://www.semanticweb.org/onto.owl#Pizza"), world = world)
-    
-  def test_rdflib_10(self):
-    world = self.new_world()
-    o = world.get_ontology("http://www.semanticweb.org/jiba/ontologies/2017/0/test").load()
-    g = world.as_sparql_graph()
-    g.bind("onto", "http://www.semanticweb.org/jiba/ontologies/2017/0/test#")
-
-    r = g.update("""
-    DELETE {
-    onto:ma_pizza
-    <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>
-    onto:Pizza .
-    } WHERE {}""")
-    
-    self.assert_not_triple(world._abbreviate("http://www.semanticweb.org/onto.owl#ma_pizza"), rdf_type, world._abbreviate("http://www.semanticweb.org/onto.owl#Pizza"), world = world)
-    
-  def test_rdflib_11(self):
-    world = self.new_world()
-    o = world.get_ontology("http://www.semanticweb.org/jiba/ontologies/2017/0/test").load()
-    g = world.as_sparql_graph()
-    g.bind("onto", "http://www.semanticweb.org/jiba/ontologies/2017/0/test#")
-    
-    p2 = o.Pizza("ma_pizza2")
-    storid = p2.storid
-    p2.price
-    p2.is_a
-    p2.has_topping
-    assert p2 in owlready2.namespace._cache
-    
-    with o:
-      r = g.update("""
-      INSERT {
-      onto:ma_pizza2
-      onto:price
-      12.9 .
-      } WHERE {}""")
-      
-    assert p2.price == 12.9
-    
-    with o:
-      r = g.update("""
-      INSERT {
-      onto:ma_pizza2
-      a
-      onto:Cheese .
-      } WHERE {}""")
-      
-    assert o.Cheese in p2.is_a
-    
-    with o:
-      r = g.update("""
-      INSERT {
-      onto:ma_pizza2
-      onto:has_topping
-      onto:ma_tomate .
-      } WHERE {}""")
-      
-    assert p2.has_topping == [o.ma_tomate]
-
-    with o:
-      r = g.update("""
-      DELETE {
-      onto:ma_pizza2
-      onto:price
-      12.9 .
-      } WHERE {}""")
-      
-    assert p2.price == None
-    
-    with o:
-      r = g.update("""
-      DELETE {
-      onto:ma_pizza2
-      a
-      onto:Cheese .
-      } WHERE {}""")
-      
-    assert p2.is_a == [o.Pizza]
-    
-    with o:
-      r = g.update("""
-      DELETE {
-      onto:ma_pizza2
-      onto:has_topping
-      onto:ma_tomate .
-      } WHERE {}""")
-      
-    assert p2.has_topping == []
-    
-  def test_rdflib_11(self):
-    world = self.new_world()
-    onto = world.get_ontology("http://test.org/onto.owl")
-    with onto:
-      class C(Thing): pass
-      class p(Thing >> Thing): pass
-      c1 = C()
-      c2 = C(p = [c1])
-      comment[c2, p, c1] = ["XYZ"]
-      
-    graph = world.as_sparql_graph()
-    
-    graph.bind("owl", "http://www.w3.org/2002/07/owl#")
-    graph.bind("rdfs", "http://www.w3.org/2000/01/rdf-schema#")
-    graph.bind("onto", onto.base_iri)
-    
-    query = """
-SELECT ?label WHERE {
-?annotation owl:annotatedSource onto:c2 .
-?annotation owl:annotatedTarget onto:c1 .
-?annotation rdfs:comment ?label .
-}"""
-    
-    result = list(graph.query(query))
-    assert len(result) == 1
-    assert result[0][0].value == "XYZ"
-    
-  def test_rdflib_12(self):
-    world = self.new_world()
-    onto = world.get_ontology("http://test.org/onto.owl")
-    with onto:
-      class C(Thing): pass
-      class p(Thing >> Thing): pass
-      c1 = C()
-      c2 = C(p = [c1])
-      comment[c2, p, c1] = ["XYZ"]
-      
-    graph = world.as_sparql_graph()
-    
-    graph.bind("owl", "http://www.w3.org/2002/07/owl#")
-    graph.bind("rdfs", "http://www.w3.org/2000/01/rdf-schema#")
-    graph.bind("onto", onto.base_iri)
-    
-    query = """
-DELETE {
-    ?annotation ?p ?o .
-}
-WHERE {
-    ?annotation owl:annotatedSource onto:c2 .
-    ?annotation owl:annotatedProperty onto:p .
-    ?annotation owl:annotatedTarget onto:c1 .
-    ?annotation ?p ?o .  
-}"""
-
-    l = comment[c2, p, c1]
-    graph.update(query)
-    
-    assert comment[c2, p, c1] == []
-    
-  def test_rdflib_12(self):
-    world = self.new_world()
-    onto1 = world.get_ontology("http://test.org/onto1.owl")
-
-    graph = world.as_sparql_graph()
-    assert not graph.get_context(onto1) is None
-    
-    onto2 = world.get_ontology("http://test.org/onto2.owl")
-    assert not graph.get_context(onto2) is None
-    
-    
   def test_refactor_1(self):
     world = self.new_world()
     n = world.get_ontology("http://www.semanticweb.org/jiba/ontologies/2017/0/test").load()
@@ -5830,7 +5429,7 @@ WHERE {
     
   def test_date_4(self):
     world = self.new_world()
-    onto = world.get_ontology("./owlready2/test/test_datetime.owl").load()
+    onto = world.get_ontology("./owlready3/test/test_datetime.owl").load()
     
     assert set(onto.c1.d) == set([
       datetime.datetime(2017, 9, 17, 13, 52, 24, tzinfo=datetime.timezone.utc),
@@ -5921,8 +5520,8 @@ WHERE {
     self.assert_triple(c1.storid, p.storid, "0e", hex_storid, world)
 
     c1 = C = None
-    import owlready2.namespace
-    owlready2.namespace._cache = [None] * 1000
+    import owlready3.namespace
+    owlready3.namespace._cache = [None] * 1000
     import gc
     gc.collect(); gc.collect(); gc.collect()
     
@@ -6287,7 +5886,7 @@ WHERE {
       
 
   def test_observe_1(self):
-    import owlready2.observe
+    import owlready3.observe
 
     w = self.new_world()
     onto = w.get_ontology("http://test.org/t.owl")
@@ -6304,8 +5903,8 @@ WHERE {
     def listener(o, p):
       nonlocal listened
       listened += "%s %s\n" % (w._unabbreviate(o), w._unabbreviate(p))
-    owlready2.observe.start_observing(onto)
-    owlready2.observe.observe(c, listener)
+    owlready3.observe.start_observing(onto)
+    owlready3.observe.observe(c, listener)
     
     c.ps = [1, 2, 3]
     
@@ -6316,7 +5915,7 @@ WHERE {
     
     c.is_a = [D]
     
-    owlready2.observe.unobserve(c, listener)
+    owlready3.observe.unobserve(c, listener)
     
     c.ps = [0]
     
@@ -6332,7 +5931,7 @@ http://test.org/t.owl#c1 http://www.w3.org/1999/02/22-rdf-syntax-ns#type
 """
     
   def test_observe_2(self):
-    import owlready2.observe
+    import owlready3.observe
     
     w = self.new_world()
     onto = w.get_ontology("http://test.org/t.owl")
@@ -6349,8 +5948,8 @@ http://test.org/t.owl#c1 http://www.w3.org/1999/02/22-rdf-syntax-ns#type
     def listener(o, ps):
       for p in ps:
         listened.add("%s %s" % (w._unabbreviate(o), w._unabbreviate(p)))
-    owlready2.observe.start_observing(onto)
-    owlready2.observe.observe(c.storid, listener, True, w)
+    owlready3.observe.start_observing(onto)
+    owlready3.observe.observe(c.storid, listener, True, w)
     
     c.ps.remove(2)
     c.ps.append(4)
@@ -6359,21 +5958,21 @@ http://test.org/t.owl#c1 http://www.w3.org/1999/02/22-rdf-syntax-ns#type
     
     assert not listened
     
-    owlready2.observe.scan_collapsed_changes()
+    owlready3.observe.scan_collapsed_changes()
 
     assert listened == {"http://test.org/t.owl#c1 http://www.w3.org/1999/02/22-rdf-syntax-ns#type", "http://test.org/t.owl#c1 http://test.org/t.owl#ps"}
     
     listened = set()
-    owlready2.observe.scan_collapsed_changes()
+    owlready3.observe.scan_collapsed_changes()
     assert not listened # Now empty
     
-    owlready2.observe.unobserve(c.storid, listener, w)
+    owlready3.observe.unobserve(c.storid, listener, w)
     c.ps.append(5)
-    owlready2.observe.scan_collapsed_changes()
+    owlready3.observe.scan_collapsed_changes()
     assert not listened
     
   def test_observe_3(self):
-    import owlready2.observe
+    import owlready3.observe
     
     w = self.new_world()
     onto = w.get_ontology("http://test.org/t.owl")
@@ -6390,8 +5989,8 @@ http://test.org/t.owl#c1 http://www.w3.org/1999/02/22-rdf-syntax-ns#type
     def listener(o, ps):
       for p in ps:
         listened.add("%s %s" % (w._unabbreviate(o), w._unabbreviate(p)))
-    owlready2.observe.start_observing(onto)
-    owlready2.observe.observe(c, listener, True)
+    owlready3.observe.start_observing(onto)
+    owlready3.observe.observe(c, listener, True)
     
     c.ps.remove(2)
     c.ps.append(4)
@@ -6400,21 +5999,21 @@ http://test.org/t.owl#c1 http://www.w3.org/1999/02/22-rdf-syntax-ns#type
     
     assert not listened
     
-    owlready2.observe.scan_collapsed_changes()
+    owlready3.observe.scan_collapsed_changes()
     
     assert listened == {"http://test.org/t.owl#c1 http://www.w3.org/1999/02/22-rdf-syntax-ns#type", "http://test.org/t.owl#c1 http://test.org/t.owl#ps"}
     
     listened = set()
-    owlready2.observe.scan_collapsed_changes()
+    owlready3.observe.scan_collapsed_changes()
     assert not listened # Now empty
     
-    owlready2.observe.unobserve(c, listener)
+    owlready3.observe.unobserve(c, listener)
     c.ps.append(5)
-    owlready2.observe.scan_collapsed_changes()
+    owlready3.observe.scan_collapsed_changes()
     assert not listened
     
   def disabled_test_observe_4(self):
-    import owlready2.observe
+    import owlready3.observe
     
     w = self.new_world()
     onto = w.get_ontology("http://test.org/t.owl")
@@ -6428,9 +6027,9 @@ http://test.org/t.owl#c1 http://www.w3.org/1999/02/22-rdf-syntax-ns#type
     listened = []
     def listener(o, p):
       listened.append((o, p))
-    l = owlready2.observe.InstancesOfClass(C, use_observe = True)
-    owlready2.observe.start_observing(onto)
-    owlready2.observe.observe(l, listener)
+    l = owlready3.observe.InstancesOfClass(C, use_observe = True)
+    owlready3.observe.start_observing(onto)
+    owlready3.observe.observe(l, listener)
     
     c3 = C()
 
@@ -6442,7 +6041,7 @@ http://test.org/t.owl#c1 http://www.w3.org/1999/02/22-rdf-syntax-ns#type
     assert list(l) == [c1, c2, c3]
     
   def disabled_test_observe_5(self):
-    import owlready2.observe
+    import owlready3.observe
     
     w = self.new_world()
     onto = w.get_ontology("http://test.org/t.owl")
@@ -6456,10 +6055,10 @@ http://test.org/t.owl#c1 http://www.w3.org/1999/02/22-rdf-syntax-ns#type
     listened = []
     def listener(o, p, new, old):
       listened.append((o, p, new, old))
-    l = owlready2.observe.InstancesOfClass(C, use_observe = True)
+    l = owlready3.observe.InstancesOfClass(C, use_observe = True)
     len(l)
-    owlready2.observe.start_observing(onto)
-    owlready2.observe.observe(l, listener)
+    owlready3.observe.start_observing(onto)
+    owlready3.observe.observe(l, listener)
     
     c3 = C()
 
@@ -6471,7 +6070,7 @@ http://test.org/t.owl#c1 http://www.w3.org/1999/02/22-rdf-syntax-ns#type
     assert list(l) == [c1, c2, c3]
     
   def disabled_test_observe_6(self):
-    import owlready2.observe
+    import owlready3.observe
     
     w = self.new_world()
     onto = w.get_ontology("http://test.org/t.owl")
@@ -6486,15 +6085,15 @@ http://test.org/t.owl#c1 http://www.w3.org/1999/02/22-rdf-syntax-ns#type
     
     def listener(o, diffs):
       listened.extend(diffs)
-    l = owlready2.observe.InstancesOfClass(C, use_observe = True)
-    owlready2.observe.start_observing(onto)
-    owlready2.observe.observe(l, listener, True)
+    l = owlready3.observe.InstancesOfClass(C, use_observe = True)
+    owlready3.observe.start_observing(onto)
+    owlready3.observe.observe(l, listener, True)
     
     c3 = C()
     c4 = C()
     
     assert listened == []
-    owlready2.observe.scan_collapsed_changes()
+    owlready3.observe.scan_collapsed_changes()
     
     assert listened[0][0] == "Inverse(http://www.w3.org/1999/02/22-rdf-syntax-ns#type)"
     assert list(listened[0][1]) == [c1, c2, c3, c4]
@@ -6503,7 +6102,7 @@ http://test.org/t.owl#c1 http://www.w3.org/1999/02/22-rdf-syntax-ns#type
     assert list(l) == [c1, c2, c3, c4]
     
   def test_observe_7(self):
-    import owlready2.observe
+    import owlready3.observe
     
     w = self.new_world()
     onto = w.get_ontology("http://test.org/t.owl")
@@ -6518,14 +6117,14 @@ http://test.org/t.owl#c1 http://www.w3.org/1999/02/22-rdf-syntax-ns#type
       c3.label.en = "Asprine"
       c3.label.fr = "Asprin"
       
-    l = owlready2.observe.InstancesOfClass(C, order_by = "label", lang = "fr", use_observe = True)
+    l = owlready3.observe.InstancesOfClass(C, order_by = "label", lang = "fr", use_observe = True)
     assert list(l) == [c1, c3, c2]
     
-    l = owlready2.observe.InstancesOfClass(C, order_by = "label", lang = "en", use_observe = True)
+    l = owlready3.observe.InstancesOfClass(C, order_by = "label", lang = "en", use_observe = True)
     assert list(l) == [c1, c2, c3]
     
   def test_observe_8(self):
-    import owlready2.observe
+    import owlready3.observe
     
     w = self.new_world()
     onto = w.get_ontology("http://test.org/t.owl")
@@ -6541,8 +6140,8 @@ http://test.org/t.owl#c1 http://www.w3.org/1999/02/22-rdf-syntax-ns#type
     def listener(o, p):
       nonlocal listened
       listened += "%s %s\n" % (w._unabbreviate(o), w._unabbreviate(p))
-    owlready2.observe.start_observing(onto)
-    owlready2.observe.observe(c2, listener)
+    owlready3.observe.start_observing(onto)
+    owlready3.observe.observe(c2, listener)
     
     c1.p.append(c2)
 
@@ -6726,6 +6325,7 @@ http://test.org/t.owl#c1 http://www.w3.org/1999/02/22-rdf-syntax-ns#type
       imp = Imp().set_as_rule("""http://test.org/t.owl#Person(?p), http://test.org/t.owl#size(?p, ?s) -> http://test.org/t.owl#weight(?p, ?s)""")
       assert str(imp) == """Person(?p), size(?p, ?s) -> weight(?p, ?s)"""
 
+  @unittest.skip("rustdl does not perform SWRL rule reasoning")
   def test_swrl_2(self):
     world = self.new_world()
     onto = world.get_ontology("http://test.org/t.owl#")
@@ -6742,6 +6342,7 @@ http://test.org/t.owl#c1 http://www.w3.org/1999/02/22-rdf-syntax-ns#type
     
     assert p1.imc == 25.0
     
+  @unittest.skip("rustdl does not perform SWRL rule reasoning")
   def test_swrl_3(self):
     world = self.new_world()
     onto_perso = world.get_ontology("http://test.org/personne2.owl#")
@@ -6767,6 +6368,7 @@ http://test.org/t.owl#c1 http://www.w3.org/1999/02/22-rdf-syntax-ns#type
     
     assert 22 < p1.imc < 23
     
+  @unittest.skip("rustdl does not perform SWRL rule reasoning")
   def test_swrl_4(self):
     world = self.new_world()
     onto = world.get_ontology("http://test.org/t.owl#")
@@ -6783,6 +6385,7 @@ http://test.org/t.owl#c1 http://www.w3.org/1999/02/22-rdf-syntax-ns#type
     
     assert c2.p2 == [c1]
     
+  @unittest.skip("rustdl does not perform SWRL rule reasoning")
   def test_swrl_5(self):
     world = self.new_world()
     onto = world.get_ontology("http://test.org/t.owl#")
@@ -6797,6 +6400,7 @@ http://test.org/t.owl#c1 http://www.w3.org/1999/02/22-rdf-syntax-ns#type
     
     assert c.p == [1.0]
     
+  @unittest.skip("rustdl does not perform SWRL rule reasoning")
   def test_swrl_6(self):
     world = self.new_world()
     onto = world.get_ontology("http://test.org/t.owl#")
@@ -6846,7 +6450,7 @@ http://test.org/t.owl#c1 http://www.w3.org/1999/02/22-rdf-syntax-ns#type
   def test_dl_render_1(self):
     world = self.new_world()
     n = world.get_ontology("http://www.semanticweb.org/jiba/ontologies/2017/2/test_reasoning.owl").load()
-    from owlready2.dl_render import dl_render_class_str
+    from owlready3.dl_render import dl_render_class_str
     assert set(dl_render_class_str(n.Cheese).split("\n")) == set("""Cheese ⊑ Topping
 Cheese ⊓ Meat ⊑ ⊥
 Cheese ⊓ Vegetable ⊑ ⊥""".split("\n"))

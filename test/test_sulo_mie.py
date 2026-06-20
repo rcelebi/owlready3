@@ -1,11 +1,11 @@
 """
-Test suite for owlready2 Manchester syntax extensions.
+Test suite for owlready3 Manchester syntax extensions.
 
 Test cases are derived from the MIE breast-cancer case study in the SULO
 tutorial (sulo-tutorial/notebooks/test/01-05-MIE-*.ipynb).
 
 Run from the claude-ws directory:
-    python3 owlready2/test/test_sulo_mie.py -v
+    python3 owlready3/test/test_sulo_mie.py -v
 
 Concepts tested
 ---------------
@@ -21,11 +21,11 @@ Concepts tested
 import sys, os, io, tempfile, unittest, atexit
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-ROOT = os.path.dirname(HERE)                     # owlready2/
-sys.path.insert(0, os.path.dirname(ROOT))        # claude-ws/ so "import owlready2" finds the local copy
+ROOT = os.path.dirname(HERE)                     # owlready3/
+sys.path.insert(0, os.path.dirname(ROOT))        # claude-ws/ so "import owlready3" finds the local copy
 
-import owlready2
-from owlready2 import (
+import owlready3
+from owlready3 import (
     to_manchester,
     parse_manchester_expression,
     parse_manchester_ontology,
@@ -35,9 +35,9 @@ from owlready2 import (
     instances_of,
     sync_reasoner_pellet,
 )
-from owlready2.class_construct import And, Or, Restriction, ConstrainedDatatype
+from owlready3.class_construct import And, Or, Restriction, ConstrainedDatatype
 
-owlready2.set_log_level(0)
+owlready3.set_log_level(0)
 
 DIST    = os.path.abspath(os.path.join(ROOT, '..', 'sulo-tutorial', 'dist'))
 MIE05   = os.path.join(DIST, 'mie-05.owl')
@@ -58,12 +58,12 @@ def _new_world():
     fd, path = tempfile.mkstemp(suffix='.sqlite3')
     os.close(fd)
     _TMPFILES.append(path)
-    w = owlready2.World()
+    w = owlready3.World()
     w.set_backend(filename=path)
     return w
 
-if DIST not in owlready2.onto_path:
-    owlready2.onto_path.append(DIST)
+if DIST not in owlready3.onto_path:
+    owlready3.onto_path.append(DIST)
 
 _W    = _new_world()
 _ONTO = _W.get_ontology(f'file://{MIE05}').load()

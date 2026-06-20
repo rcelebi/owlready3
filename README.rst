@@ -1,8 +1,8 @@
-Owlready2
+Owlready3
 =========
 
-.. image:: https://readthedocs.org/projects/owlready2/badge/?version=latest
-   :target: http://owlready2.readthedocs.io/en/latest/
+.. image:: https://readthedocs.org/projects/owlready3/badge/?version=latest
+   :target: http://owlready3.readthedocs.io/en/latest/
    :alt: documentation
 
 .. image:: http://www.lesfleursdunormal.fr/static/_images/owlready_downloads.svg
@@ -11,9 +11,9 @@ Owlready2
 
 
          
-Owlready2 is a module for ontology-oriented programming in Python 3, including an optimized RDF quadstore.
+Owlready3 is a module for ontology-oriented programming in Python 3, including an optimized RDF quadstore.
 
-Owlready2 can:
+Owlready3 can:
 
  - Import OWL 2.0 ontologies in NTriples, RDF/XML or OWL/XML format
 
@@ -31,7 +31,7 @@ Owlready2 can:
 
  - In addition, the quadstore is compatible with the RDFlib Python module, which can be used to perform SPARQL queries
  
- - Finally, Owlready2 can also be used as an ORM (Object-Relational mapper) -- as a graph/object database, it beats Neo4J, MongoDB, SQLObject and SQLAlchemy in terms of performances
+ - Finally, Owlready3 can also be used as an ORM (Object-Relational mapper) -- as a graph/object database, it beats Neo4J, MongoDB, SQLObject and SQLAlchemy in terms of performances
   
 Owlready has been created by Jean-Baptiste Lamy at the LIMICS reseach lab.
 It is available under the GNU LGPL licence v3.
@@ -45,14 +45,14 @@ In case of troubles, questions or comments, please use this Forum/Mailing list: 
 
 
   
-What can I do with Owlready2?
+What can I do with Owlready3?
 -----------------------------
 
 Load an ontology from a local repository, or from Internet:
 
 ::
 
-  >>> from owlready2 import *
+  >>> from owlready3 import *
   >>> onto_path.append("/path/to/your/local/ontology/repository")
   >>> onto = get_ontology("http://www.lesfleursdunormal.fr/static/_downloads/pizza_onto.owl")
   >>> onto.load()
@@ -105,8 +105,8 @@ Access to medical terminologies from UMLS:
 
 ::
 
-  >>> from owlready2 import *
-  >>> from owlready2.pymedtermino2.umls import *
+  >>> from owlready3 import *
+  >>> from owlready3.pymedtermino2.umls import *
   >>> default_world.set_backend(filename = "pym.sqlite3")
   >>> import_umls("umls-2018AB-full.zip", terminologies = ["ICD10", "SNOMEDCT_US", "CUI"])
   >>> default_world.save()
@@ -320,7 +320,7 @@ version 2 - 0.13
 version 2 - 0.14
 ****************
 
-* UMLS support (owlready2.pymedtermino2 package)
+* UMLS support (owlready3.pymedtermino2 package)
 * Can infer object property values when reasoning (thanks W Zimmer)
 * New implementation of property values; use INDIRECT_prop to get indirect values
 * Support several class property types : some, only, some + only, and direct relation
@@ -423,7 +423,7 @@ version 2 - 0.20
 * Small database optimizations
 * No longer treat properties associated with exactly-1 or max-1 restriction as functional properties,
   returning single values instead of a list (you can restore the previous behaviour as follows:
-  import owlready2.prop; owlready2.prop.RESTRICTIONS_AS_FUNCTIONAL_PROPERTIES = True)
+  import owlready3.prop; owlready3.prop.RESTRICTIONS_AS_FUNCTIONAL_PROPERTIES = True)
 * Bugfixes:
   - Fix performance bug on UMLS mapping in PyMedTermino
 
@@ -468,7 +468,7 @@ version 2 - 0.24
 ****************
 
 * Support intersection of searches (e.g. World.search(...) & World.search(...))
-* Add owlready2.reasoning.JAVA_MEMORY
+* Add owlready3.reasoning.JAVA_MEMORY
 * Move development repository to Git
 * Bugfixes:
   - Fix parsing of NTriples files that do not end with a new line
@@ -498,7 +498,7 @@ version 2 - 0.25
 version 2 - 0.26
 ****************
 
-* Module owlready2.dl_render allows rendering entities to Description Logics (contributed by Simon Bin)
+* Module owlready3.dl_render allows rendering entities to Description Logics (contributed by Simon Bin)
 * Bugfixes:
   - Adjustment in the comparison of strings  from SameAs and DiferrentFrom,  allowing equal comparison regardless of the case-sensitive (contributed by Thiago Feijó)
   - Fix transitive equivalent_to relations between classes and OWL constructs
@@ -511,9 +511,9 @@ Links
 
 Owlready2 on BitBucket (Git development repository): https://bitbucket.org/jibalamy/owlready2
 
-Owlready2 on PyPI (Python Package Index, stable release): https://pypi.python.org/pypi/Owlready2
+Owlready3 on PyPI (Python Package Index, stable release): https://pypi.python.org/pypi/Owlready3
 
-Documentation: http://owlready2.readthedocs.io/
+Documentation: http://owlready3.readthedocs.io/
 
 Forum/Mailing list: http://owlready.8326.n8.nabble.com
 

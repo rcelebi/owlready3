@@ -1,15 +1,15 @@
 Manchester OWL Syntax
 =====================
 
-Owlready2 includes support for the `Manchester OWL syntax
-<https://www.w3.org/TR/owl2-manchester-syntax/>`_ via the ``owlready2.manchester``
+Owlready3 includes support for the `Manchester OWL syntax
+<https://www.w3.org/TR/owl2-manchester-syntax/>`_ via the ``owlready3.manchester``
 module. It provides serialisation, parsing, and query helpers.
 
 The module is automatically activated when imported:
 
 ::
 
-   >>> from owlready2.manchester import (
+   >>> from owlready3.manchester import (
    ...     to_manchester, parse_manchester_expression,
    ...     classes_matching, instances_of,
    ...     manchester_render_ontology, parse_manchester_ontology,
@@ -19,13 +19,13 @@ The module is automatically activated when imported:
 Serialising class expressions to Manchester syntax
 --------------------------------------------------
 
-``to_manchester(expr, prefixes=None)`` converts any Owlready2 class expression
+``to_manchester(expr, prefixes=None)`` converts any Owlready3 class expression
 to a Manchester string:
 
 ::
 
-   >>> from owlready2 import *
-   >>> from owlready2.manchester import to_manchester
+   >>> from owlready3 import *
+   >>> from owlready3.manchester import to_manchester
    >>>
    >>> onto = get_ontology("http://example.org/onto/")
    >>> with onto:
@@ -52,11 +52,11 @@ Parsing Manchester expressions
 -------------------------------
 
 ``parse_manchester_expression(text, ontology, prefixes=None)`` parses a
-Manchester string into an Owlready2 class expression:
+Manchester string into an Owlready3 class expression:
 
 ::
 
-   >>> from owlready2.manchester import parse_manchester_expression
+   >>> from owlready3.manchester import parse_manchester_expression
    >>> expr = parse_manchester_expression(
    ...     "Pizza and (hasTopping some MeatTopping)", onto)
    >>> expr
@@ -79,7 +79,7 @@ Manchester ``.omn`` string:
 
 ::
 
-   >>> from owlready2.manchester import manchester_render_ontology
+   >>> from owlready3.manchester import manchester_render_ontology
    >>> omn_text = manchester_render_ontology(onto)
    >>> print(omn_text)
 
@@ -88,7 +88,7 @@ existing ontology. ``source`` can be a file path or a file-like object:
 
 ::
 
-   >>> from owlready2.manchester import parse_manchester_ontology
+   >>> from owlready3.manchester import parse_manchester_ontology
    >>> parse_manchester_ontology("my_ontology.omn", onto)
 
 
@@ -101,7 +101,7 @@ searches the class hierarchy, not individuals:
 
 ::
 
-   >>> from owlready2.manchester import classes_matching
+   >>> from owlready3.manchester import classes_matching
    >>> # Find all classes that have a someValuesFrom restriction on hasTopping
    >>> matches = classes_matching("hasTopping some Thing", onto)
    >>> print(matches)
@@ -121,7 +121,7 @@ via subclasses:
 
 ::
 
-   >>> from owlready2.manchester import instances_of
+   >>> from owlready3.manchester import instances_of
    >>> instances_of(VegetarianPizza)
    [onto.my_veggie_pizza]
 

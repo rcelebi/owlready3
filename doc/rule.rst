@@ -28,14 +28,20 @@ The following example use a rule to compute the per-tablet cost of a drug:
    ...     rule.set_as_rule("""Drug(?d), price(?d, ?p), number_of_tablets(?d, ?n), divide(?r, ?p, ?n) -> price_per_tablet(?d, ?r)""")
 
    
-We can now create a drug, run the reasoner (only Pellet support inferrence on data property value)
-and print the result:
+The rule is stored in the ontology and can be displayed, edited and saved like any other
+axiom (see below).
+
+.. note::
+
+   The bundled **rustdl** reasoner is a DL classifier and does **not** execute SWRL rules;
+   rule-based inference (and inferred data-property values) requires a Java reasoner such as
+   Pellet, available in upstream Owlready2. With rustdl, ``sync_reasoner()`` will not infer
+   ``price_per_tablet``:
+
 ::
-   
+
    >>> drug = Drug(number_of_tablets = 10, price = 25.0)
-   >>> sync_reasoner_pellet(infer_property_values = True, infer_data_property_values = True)
-   >>> drug.price_per_tablet
-   2.5
+   >>> # SWRL rule execution is not supported by rustdl — price_per_tablet stays unset.
 
 
 Displaying rules
