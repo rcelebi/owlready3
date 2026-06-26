@@ -27,6 +27,7 @@ import tempfile, warnings
 
 import owlready3
 from owlready3.base            import *
+from owlready3.base            import to_literal, from_literal, locstr
 from owlready3.prop            import *
 from owlready3.namespace       import *
 from owlready3.class_construct import *
@@ -121,9 +122,12 @@ def sync_reasoner_rustdl(x = None, infer_property_values = False, infer_data_pro
   `per_pair_timeout_ms` bounds each subsumption test (0 = unbounded/complete).
   `saturation_only` restricts rustdl to the fast EL-closure under-approximation.
 
-  Note: rustdl does not materialize inferred object/data property values, so
-  `infer_property_values` / `infer_data_property_values` are accepted for API
-  compatibility but ignored (a warning is emitted when they are set)."""
+  When `infer_property_values` / `infer_data_property_values` are set, rustdl's
+  inferred object / data property assertions are materialized back onto the
+  quadstore and the loaded Python entities. rustdl materializes assertions
+  entailed by the property box (sub-property, inverse, symmetric, …); it does
+  not derive values from hasValue restrictions, owl:sameAs propagation or SWRL
+  rules, so those particular entailments will not appear."""
   rustdl = _load_rustdl()
 
   if   isinstance(x, World):    world = x
@@ -131,9 +135,8 @@ def sync_reasoner_rustdl(x = None, infer_property_values = False, infer_data_pro
   elif isinstance(x, list):     world = x[0].world
   else:                         world = owlready3.default_world
 
-  if infer_property_values or infer_data_property_values:
-    warnings.warn("* Owlready3 * rustdl does not materialize inferred property values; "
-                  "infer_property_values / infer_data_property_values are ignored.", stacklevel = 2)
+  inferred_obj_relations  = []
+  inferred_data_relations = []
 
   locked = world.graph.has_write_lock()
   if locked: world.graph.release_write_lock() # Not needed during reasoning
@@ -167,6 +170,8 @@ def sync_reasoner_rustdl(x = None, infer_property_values = False, infer_data_pro
       classification = rustdl.classify(tmp.name, per_pair_timeout_ms = per_pair_timeout_ms, saturation_only = saturation_only)
       sub_axioms     = rustdl.materialize_inferred_subclass_axioms(tmp.name)
       type_axioms    = rustdl.materialize_inferred_class_assertions(tmp.name)
+      obj_assertions  = rustdl.materialize_inferred_property_assertions(tmp.name)      if infer_property_values      else []
+      data_assertions = rustdl.materialize_inferred_data_property_assertions(tmp.name) if infer_data_property_values else []
     except OwlReadyInconsistentOntologyError:
       raise
     except rustdl.ParseError as e:
@@ -226,12 +231,38 @@ def sync_reasoner_rustdl(x = None, infer_property_values = False, infer_data_pro
       for cls in _most_specific_types(types_set, sub_closure):
         new_parents[ind_storid].append(ontology._abbreviate(cls))
 
+    # Inferred object property assertions (keep only the genuinely new ones).
+    for s_iri, p_iri, o_iri in obj_assertions:
+      s_storid = ontology._abbreviate(s_iri)
+      p_storid = ontology._abbreviate(p_iri)
+      o_storid = ontology._abbreviate(o_iri)
+      if world._has_obj_triple_spo(s_storid, p_storid, o_storid): continue
+      prop = world._get_by_storid(p_storid)
+      if prop is None: continue
+      inferred_obj_relations.append((s_storid, prop, o_storid))
+
+    # Inferred data property assertions. rustdl yields 5-tuples
+    # (subject, property, lexical_value, datatype_iri, lang).
+    for s_iri, p_iri, value_str, datatype_iri, lang in data_assertions:
+      s_storid = ontology._abbreviate(s_iri)
+      p_storid = ontology._abbreviate(p_iri)
+      prop = world._get_by_storid(p_storid)
+      if prop is None: continue
+      if lang: python_value = locstr(value_str, lang)
+      else:    python_value = from_literal(value_str, ontology._abbreviate(datatype_iri))
+      value, datatype = to_literal(python_value)
+      if world._has_data_triple_spod(s_storid, p_storid, value, datatype): continue
+      inferred_data_relations.append((s_storid, prop, value, datatype))
+
     if not keep_tmp_file: os.unlink(tmp.name)
 
   finally:
     if locked: world.graph.acquire_write_lock() # re-lock when applying results
 
   _apply_reasoning_results(world, ontology, debug, new_parents, new_equivs, entity_2_type)
+
+  if inferred_obj_relations:  _apply_inferred_obj_relations (world, ontology, debug, inferred_obj_relations)
+  if inferred_data_relations: _apply_inferred_data_relations(world, ontology, debug, inferred_data_relations)
 
   if debug: print("* Owlready * (NB: only changes on entities loaded in Python are shown, other changes are done but not listed)", file = sys.stderr)
 

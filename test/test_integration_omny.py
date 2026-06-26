@@ -25,7 +25,7 @@
 
 import unittest
 
-from owlready3 import World, Thing
+from owlready3 import World, Thing, ObjectProperty
 
 try:
   import omny
@@ -33,6 +33,13 @@ try:
   _HAS_OMNY = True
 except ImportError:
   _HAS_OMNY = False
+
+try:
+  import rustdl
+  from owlready3 import sync_reasoner_rustdl
+  _HAS_RUSTDL = True
+except ImportError:
+  _HAS_RUSTDL = False
 
 
 def _local(term):
@@ -82,6 +89,57 @@ class OmnyIntegration(unittest.TestCase):
     q = omny.class_relations_query(self.onto.Pizza, construct = False)
     names = { _local(row[0]) for row in run_rdflib(q, self.world.as_rdflib_graph()) }
     self.assertIn("VegetarianPizza", names)
+
+
+@unittest.skipUnless(_HAS_OMNY and _HAS_RUSTDL,
+                     "needs omny + rustdl (pip install omny rustdl)")
+class RustdlOmnyIntegration(unittest.TestCase):
+  """Reasoner <-> SPARQL seam: omny must surface subsumptions INFERRED by the
+  rustdl reasoner, not just asserted triples.
+
+  MargheritaPizza is primitively `hasTopping some CheeseTopping`; CheesyPizza is
+  DEFINED as `Pizza and (hasTopping some CheeseTopping)`. The edge
+  MargheritaPizza ⊑ CheesyPizza is never asserted — rustdl must derive it, and
+  omny's SPARQL must then see it.
+  """
+  BASE = "http://example.org/pizza_reasoned.owl"
+
+  def setUp(self):
+    self.world = World()
+    onto = self.world.get_ontology(self.BASE)
+    with onto:
+      class Pizza(Thing): pass
+      class Topping(Thing): pass
+      class CheeseTopping(Topping): pass
+      class hasTopping(ObjectProperty): pass
+      class CheesyPizza(Pizza):
+        equivalent_to = [Pizza & hasTopping.some(CheeseTopping)]
+      class MargheritaPizza(Pizza):
+        is_a = [hasTopping.some(CheeseTopping)]
+    self.onto = onto
+
+  def _omny_subs(self, cls):
+    q = omny.class_relations_query(cls, relations = ("sub",), construct = False)
+    return { _local(row[0]) for row in run_owlready2(q, self.world) }
+
+  def test_subsumption_not_asserted_before_reasoning(self):
+    # Without reasoning, the inferred edge must NOT appear.
+    self.assertNotIn("MargheritaPizza", self._omny_subs(self.onto.CheesyPizza))
+
+  def test_rustdl_inference_visible_via_omny_select(self):
+    with self.onto:
+      sync_reasoner_rustdl(self.onto)
+    # rustdl infers MargheritaPizza ⊑ CheesyPizza; omny SELECT (World.sparql) sees it.
+    self.assertIn("MargheritaPizza", self._omny_subs(self.onto.CheesyPizza))
+
+  def test_rustdl_inference_visible_via_omny_construct(self):
+    with self.onto:
+      sync_reasoner_rustdl(self.onto)
+    q = omny.class_relations_query(self.onto.CheesyPizza, construct = True)
+    graph = run_rdflib(q, self.world.as_rdflib_graph())
+    import rdflib
+    self.assertIsInstance(graph, rdflib.Graph)
+    self.assertGreater(len(graph), 0)
 
 
 if __name__ == "__main__":

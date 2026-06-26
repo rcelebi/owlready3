@@ -29,9 +29,9 @@ classifiers = [
 ]
 
 [project.optional-dependencies]
-reasoning = ["rustdl"]                  # native OWL 2 DL reasoner (sync_reasoner)
+reasoning = ["rustdl>=0.3.12"]          # native OWL 2 DL reasoner (sync_reasoner)
 rdflib    = ["rdflib"]                  # World.as_rdflib_graph() + SPARQL bridge
-all       = ["rustdl", "rdflib"]
+all       = ["rustdl>=0.3.12", "rdflib"]
 
 [project.urls]
 Homepage = "https://github.com/rcelebi/owlready3"

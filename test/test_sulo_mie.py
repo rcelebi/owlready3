@@ -33,11 +33,39 @@ from owlready3 import (
     SOME, ONLY, MIN, MAX, EXACTLY, VALUE,
     classes_matching,
     instances_of,
-    sync_reasoner_pellet,
+    sync_reasoner_rustdl,
 )
 from owlready3.class_construct import And, Or, Restriction, ConstrainedDatatype
 
 owlready3.set_log_level(0)
+
+# ── require a recent rustdl ─────────────────────────────────────────────────
+# These tests assert rustdl's ABox-realization / classification behaviour, which
+# is only correct on recent releases. Pin the floor here so the suite fails loudly
+# (rather than silently mis-classifying) on a stale reasoner. Keep in sync with
+# pyproject.toml's [project.optional-dependencies] rustdl>=… pin.
+RUSTDL_MIN = (0, 3, 12)
+
+def _rustdl_version():
+    import rustdl
+    try:
+        from importlib.metadata import version
+        v = version("rustdl")
+    except Exception:
+        v = getattr(rustdl, "__version__", "0")
+    parts = []
+    for tok in v.split("."):
+        num = "".join(c for c in tok if c.isdigit())
+        if not num: break
+        parts.append(int(num))
+    return tuple(parts), v
+
+_RUSTDL_VER, _RUSTDL_VER_STR = _rustdl_version()
+if _RUSTDL_VER < RUSTDL_MIN:
+    raise RuntimeError(
+        "test_sulo_mie.py requires rustdl>=%s, but found %s. "
+        "Upgrade with:  pip install -U rustdl"
+        % (".".join(map(str, RUSTDL_MIN)), _RUSTDL_VER_STR))
 
 DIST    = os.path.abspath(os.path.join(ROOT, '..', 'sulo-tutorial', 'dist'))
 MIE05   = os.path.join(DIST, 'mie-05.owl')
@@ -473,14 +501,14 @@ class TestClassesMatching(unittest.TestCase):
 # ════════════════════════════════════════════════════════════════════════════
 
 class TestReasoning(unittest.TestCase):
-    """Load mie-05 into a fresh world, run Pellet, assert classifications."""
+    """Load mie-05 into a fresh world, run rustdl, assert classifications."""
 
     @classmethod
     def setUpClass(cls):
         cls.w    = _new_world()
         cls.onto = cls.w.get_ontology(f'file://{MIE05}').load()
         with cls.onto:
-            sync_reasoner_pellet(cls.onto, infer_property_values=True)
+            sync_reasoner_rustdl(cls.onto)
 
     def C(self, name): return self.w[f'{MIE_IRI}{name}']
     def I(self, name): return self.w[f'{MIE_IRI}{name}']
@@ -538,7 +566,7 @@ class TestInstancesOf(unittest.TestCase):
         cls.w    = _new_world()
         cls.onto = cls.w.get_ontology(f'file://{MIE05}').load()
         with cls.onto:
-            sync_reasoner_pellet(cls.onto, infer_property_values=True)
+            sync_reasoner_rustdl(cls.onto)
 
     def C(self, name): return self.w[f'{MIE_IRI}{name}']
 
@@ -576,7 +604,7 @@ class TestInstancesOfDLQuery(unittest.TestCase):
         cls.w    = _new_world()
         cls.onto = cls.w.get_ontology(f'file://{MIE05}').load()
         with cls.onto:
-            sync_reasoner_pellet(cls.onto, infer_property_values=True)
+            sync_reasoner_rustdl(cls.onto)
 
     def _q(self, expr_str):
         expr = parse_manchester_expression(expr_str, self.onto)
@@ -624,7 +652,7 @@ class TestSparql(unittest.TestCase):
         cls.w    = _new_world()
         cls.onto = cls.w.get_ontology(f'file://{MIE05}').load()
         with cls.onto:
-            sync_reasoner_pellet(cls.onto, infer_property_values=True)
+            sync_reasoner_rustdl(cls.onto)
 
     def I(self, name): return self.w[f'{MIE_IRI}{name}']
 
@@ -710,6 +738,18 @@ class TestSparql(unittest.TestCase):
         self.assertEqual(len(rows), 3)
         values = sorted(v for _, v in rows)
         self.assertEqual(values, [118, 142, 165])
+
+
+# ════════════════════════════════════════════════════════════════════════════
+# 13. Environment – recent rustdl reasoner
+# ════════════════════════════════════════════════════════════════════════════
+
+class TestRustdlVersion(unittest.TestCase):
+    def test_rustdl_is_recent(self):
+        self.assertGreaterEqual(
+            _RUSTDL_VER, RUSTDL_MIN,
+            "rustdl %s is older than the required %s"
+            % (_RUSTDL_VER_STR, ".".join(map(str, RUSTDL_MIN))))
 
 
 if __name__ == '__main__':
