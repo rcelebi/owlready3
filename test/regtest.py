@@ -5006,7 +5006,24 @@ multiple lines with " and ’ and \ and & and < and > and é."""
         raise unittest.SkipTest("owlready3_optimized (optional Cython accelerator) not built; "
                                 "unrelated to the rustdl reasoner")
 
-    
+  def test_format_28_functional_syntax_individuals(self):
+    # Functional-syntax export must include BOTH DifferentIndividuals (owl:AllDifferent)
+    # and SameIndividual (owl:sameAs); the latter was previously dropped, silently
+    # weakening anything that consumes the .ofn export (e.g. the rustdl reasoner).
+    from owlready3.fs_render import render_world_functional_syntax
+    world = self.new_world()
+    onto  = world.get_ontology("http://test.org/fs.owl")
+    with onto:
+      class P(Thing): pass
+      a = P("a"); b = P("b"); c = P("c")
+      AllDifferent([a, b, c])
+      a.equivalent_to.append(b)            # owl:sameAs a b
+    ofn = render_world_functional_syntax(world)
+    assert "DifferentIndividuals(" in ofn
+    assert "SameIndividual("       in ofn
+    assert ("SameIndividual(<http://test.org/fs.owl#a> <http://test.org/fs.owl#b>)" in ofn
+            or "SameIndividual(<http://test.org/fs.owl#b> <http://test.org/fs.owl#a>)" in ofn)
+
   def test_search_1(self):
     world = self.new_world()
     n = world.get_ontology("http://www.semanticweb.org/jiba/ontologies/2017/0/test").load()

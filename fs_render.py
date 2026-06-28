@@ -254,6 +254,19 @@ class _FunctionalSyntaxExporter:
       if len(members) >= 2:
         self._emit("DifferentIndividuals(%s)" % " ".join(members))
 
+    # Same individuals (owl:sameAs). On an individual it is stored one-way in
+    # `.equivalent_to`, so collect unordered pairs (dedup + catch the reverse).
+    same_pairs = set()
+    for ind in w.individuals():
+      if _is_builtin_iri(ind.iri): continue
+      for same in ind.equivalent_to:
+        same_iri = getattr(same, "iri", None)
+        if (not same_iri) or _is_builtin_iri(same_iri) or (same is ind): continue
+        same_pairs.add(frozenset((ind, same)))
+    for pair in same_pairs:
+      a, b = sorted(pair, key = lambda e: e.storid)   # deterministic order
+      self._emit("SameIndividual(%s %s)" % (self._iri(a), self._iri(b)))
+
     return self.lines
 
 
