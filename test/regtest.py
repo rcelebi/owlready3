@@ -6743,8 +6743,58 @@ constitutive hemorrhagic disorder CI         CI      CI   """.strip()
     assert ma_galette.__class__ is GaletteNonVégétarienne
     
     ma_galette.manger()
-    
+
     assert ok == 1
+
+
+class Explanation(BaseTest, unittest.TestCase):
+  # explain() / repairs() / why_inconsistent() — minimal justifications via rustdl.
+  def _onto(self):
+    world = self.new_world()
+    onto  = world.get_ontology("http://test.org/expl.owl")
+    with onto:
+      class Animal(Thing): pass
+      class Plant(Thing): pass
+      class Dog(Animal): pass
+      AllDisjoint([Animal, Plant])
+      class Carnivore(Dog): pass
+      Carnivore.is_a.append(Plant)           # Carnivore becomes unsatisfiable
+    return world, onto, Animal, Plant, Dog, Carnivore
+
+  def test_explain_subsumption(self):
+    world, onto, Animal, Plant, Dog, Carnivore = self._onto()
+    just = explain(Dog, Animal)
+    assert just and any(("Dog" in a) and ("Animal" in a) for a in just)
+
+  def test_explain_unsatisfiable(self):
+    world, onto, Animal, Plant, Dog, Carnivore = self._onto()
+    just   = onto.explain(Carnivore)         # unsatisfiability (Carnivore ⊑ Nothing)
+    joined = " ".join(just)
+    for frag in ("Carnivore", "Dog", "Animal", "Plant", "DisjointWith"):
+      assert frag in joined, "%s missing from justification" % frag
+    assert len(just) >= 3
+
+  def test_explain_not_entailed_is_empty(self):
+    world, onto, Animal, Plant, Dog, Carnivore = self._onto()
+    assert explain(Dog, Plant) == []         # Dog ⊑ Plant is NOT entailed
+
+  def test_repairs(self):
+    world, onto, Animal, Plant, Dog, Carnivore = self._onto()
+    reps = onto.repairs(Carnivore, Nothing)
+    assert len(reps) >= 1
+    assert all(isinstance(r, list) and r for r in reps)
+
+  def test_why_inconsistent(self):
+    world = self.new_world()
+    onto  = world.get_ontology("http://test.org/incons.owl")
+    with onto:
+      class A(Thing): pass
+      class B(Thing): pass
+      AllDisjoint([A, B])
+      x = A("x"); x.is_a.append(B)           # x in two disjoint classes -> inconsistent
+    just = onto.why_inconsistent()
+    assert len(just) >= 1
+    assert "DisjointWith" in " ".join(just)
 
 
 # Add test for Pellet

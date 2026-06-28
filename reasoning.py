@@ -287,6 +287,93 @@ def sync_reasoner_pellet(*args, **kargs):
   return sync_reasoner_rustdl(*args, **kargs)
 
 
+# ════════════════════════════════════════════════════════════════════════════
+# Explanations: minimal justifications & repairs for entailments, via rustdl.
+# These answer "why is this entailed?" / "why is the ontology inconsistent?" —
+# something HermiT/Pellet integrations never exposed. rustdl computes them; we
+# just export the world to OWL Functional Syntax and forward the query.
+# ════════════════════════════════════════════════════════════════════════════
+
+def _entity_iri(e):
+  if e is None:              return None
+  if isinstance(e, str):     return e
+  return e.iri
+
+def _world_of(x):
+  if isinstance(x, World):    return x
+  if isinstance(x, Ontology): return x.world
+  ns = getattr(x, "namespace", None)            # a class / individual
+  if ns is not None:          return ns.world
+  return owlready3.default_world
+
+def _explain_query(sub, sup):
+  """Build a rustdl CLI-style query from owlready entities.
+     explain(C, D) -> subsumption ; explain(C) / explain(C, Nothing) -> unsatisfiability."""
+  sub_iri = _entity_iri(sub)
+  if (sup is None) or (sup is Nothing):
+    return ["unsat", sub_iri]
+  return ["subclass", sub_iri, _entity_iri(sup)]
+
+def _export_world_ofn(world):
+  from owlready3.fs_render import save_world_functional_syntax
+  tmp = tempfile.NamedTemporaryFile("w", suffix = ".ofn", delete = False)
+  tmp.close()
+  save_world_functional_syntax(world, tmp.name)
+  return tmp.name
+
+def explain(sub, sup = None, world = None, all = False, max = 10, keep_tmp_file = False):
+  """Return minimal justification(s) for an entailment, as Manchester axiom strings.
+
+      explain(C, D)        -> why C ⊑ D is entailed
+      explain(C)           -> why C is unsatisfiable (C ⊑ owl:Nothing)
+      explain(C, Nothing)  -> same as above
+
+  `sub`/`sup` are named classes. With `all = False` (default) returns one minimal
+  justification (a list of axiom strings); with `all = True` returns every minimal
+  justification (a list of such lists, capped by `max`). An empty result means the
+  entailment does not hold."""
+  rustdl = _load_rustdl()
+  world  = world or _world_of(sub)
+  query  = _explain_query(sub, sup)
+  tmp    = _export_world_ofn(world)
+  try:
+    return rustdl.justify_all(tmp, query, max = max) if all else rustdl.justify(tmp, query)
+  finally:
+    if not keep_tmp_file: os.unlink(tmp)
+
+def why_inconsistent(world = None, all = False, max = 10, keep_tmp_file = False):
+  """Return justification(s) for why the ontology is inconsistent (empty if consistent)."""
+  rustdl = _load_rustdl()
+  world  = world or owlready3.default_world
+  tmp    = _export_world_ofn(world)
+  try:
+    return rustdl.justify_all(tmp, ["inconsistent"], max = max) if all else rustdl.justify(tmp, ["inconsistent"])
+  finally:
+    if not keep_tmp_file: os.unlink(tmp)
+
+def repairs(sub, sup = None, world = None, max = 10, keep_tmp_file = False):
+  """Return minimal repairs for an entailment: each repair is a list of Manchester
+  axioms whose removal breaks the entailment. Same `sub`/`sup` convention as explain()."""
+  rustdl = _load_rustdl()
+  world  = world or _world_of(sub)
+  query  = _explain_query(sub, sup)
+  tmp    = _export_world_ofn(world)
+  try:
+    return rustdl.repair(tmp, query, max = max)
+  finally:
+    if not keep_tmp_file: os.unlink(tmp)
+
+# Attach as convenience methods on World and Ontology.
+def _world_explain         (self, sub, sup = None, **kw): return explain        (sub, sup, world = self,       **kw)
+def _world_why_inconsistent(self, **kw):                  return why_inconsistent(           world = self,       **kw)
+def _world_repairs         (self, sub, sup = None, **kw): return repairs        (sub, sup, world = self,       **kw)
+def _onto_explain          (self, sub, sup = None, **kw): return explain        (sub, sup, world = self.world, **kw)
+def _onto_why_inconsistent (self, **kw):                  return why_inconsistent(           world = self.world, **kw)
+def _onto_repairs          (self, sub, sup = None, **kw): return repairs        (sub, sup, world = self.world, **kw)
+World.explain    = _world_explain;  World.why_inconsistent    = _world_why_inconsistent;  World.repairs    = _world_repairs
+Ontology.explain = _onto_explain;   Ontology.why_inconsistent = _onto_why_inconsistent;   Ontology.repairs = _onto_repairs
+
+
 def _apply_reasoning_results(world, ontology, debug, new_parents, new_equivs, entity_2_type):
   new_parents_loaded = defaultdict(list)
   new_equivs_loaded  = defaultdict(list)
