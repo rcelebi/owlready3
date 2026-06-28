@@ -1,0 +1,989 @@
+<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+         xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+         xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+         xmlns:owl="http://www.w3.org/2002/07/owl#"
+         xml:base="https://w3id.org/ontostart/mie/"
+         xmlns:sulo="https://w3id.org/sulo/"
+         xmlns:pro="https://w3id.org/ontostart/pro/"
+         xmlns="https://w3id.org/ontostart/mie/">
+
+<owl:Ontology rdf:about="https://w3id.org/ontostart/mie">
+  <owl:imports rdf:resource="https://w3id.org/sulo"/>
+  <owl:imports rdf:resource="https://w3id.org/ontostart/pro"/>
+</owl:Ontology>
+
+<owl:Class rdf:about="SCT_RoutineGynecologicExamination">
+  <rdfs:subClassOf rdf:resource="https://w3id.org/sulo/Process"/>
+  <rdfs:subClassOf>
+    <owl:Restriction>
+      <owl:onProperty rdf:resource="https://w3id.org/sulo/hasDirectPart"/>
+      <owl:onClass rdf:resource="SCT_PhysicalExamination"/>
+      <owl:qualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:qualifiedCardinality>
+    </owl:Restriction>
+  </rdfs:subClassOf>
+  <rdfs:subClassOf>
+    <owl:Restriction>
+      <owl:onProperty rdf:resource="https://w3id.org/sulo/hasDirectPart"/>
+      <owl:onClass rdf:resource="SCT_ClinicalDocumentation"/>
+      <owl:maxQualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:maxQualifiedCardinality>
+    </owl:Restriction>
+  </rdfs:subClassOf>
+  <rdfs:label xml:lang="en">routine gynecologic examination</rdfs:label>
+</owl:Class>
+
+<owl:Class rdf:about="SCT_PhysicalExamination">
+  <rdfs:subClassOf rdf:resource="https://w3id.org/sulo/Process"/>
+  <rdfs:subClassOf>
+    <owl:Restriction>
+      <owl:onProperty rdf:resource="https://w3id.org/sulo/hasDirectPart"/>
+      <owl:onClass rdf:resource="SCT_ManualBreastExamination"/>
+      <owl:maxQualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:maxQualifiedCardinality>
+    </owl:Restriction>
+  </rdfs:subClassOf>
+  <rdfs:label xml:lang="en">physical examination</rdfs:label>
+</owl:Class>
+
+<owl:Class rdf:about="SCT_ClinicalDocumentation">
+  <rdfs:subClassOf rdf:resource="https://w3id.org/sulo/Process"/>
+  <rdfs:label xml:lang="en">clinical documentation</rdfs:label>
+</owl:Class>
+
+<owl:Class rdf:about="SCT_ManualBreastExamination">
+  <rdfs:subClassOf rdf:resource="https://w3id.org/sulo/Process"/>
+  <rdfs:label xml:lang="en">manual breast examination</rdfs:label>
+</owl:Class>
+
+<owl:Class rdf:about="SCT_UltrasonographyOfLeftBreast">
+  <rdfs:subClassOf rdf:resource="https://w3id.org/sulo/Process"/>
+  <rdfs:label xml:lang="en">ultrasonography of left breast</rdfs:label>
+</owl:Class>
+
+<owl:Class rdf:about="SCT_DiagnosticAssessment">
+  <rdfs:subClassOf rdf:resource="https://w3id.org/sulo/Process"/>
+  <rdfs:label xml:lang="en">diagnostic assessment</rdfs:label>
+</owl:Class>
+
+<owl:Class rdf:about="SCT_CoreNeedleBiopsyOfBreast">
+  <rdfs:subClassOf rdf:resource="https://w3id.org/sulo/Process"/>
+  <rdfs:subClassOf rdf:resource="https://w3id.org/ontostart/pro/TransformationProcess"/>
+  <rdfs:subClassOf>
+    <owl:Restriction>
+      <owl:onProperty rdf:resource="https://w3id.org/sulo/hasParticipant"/>
+      <owl:someValuesFrom>
+        <owl:Class>
+          <owl:intersectionOf rdf:parseType="Collection">
+            <rdf:Description rdf:about="RadiologistRole"/>
+            <owl:Restriction>
+              <owl:onProperty rdf:resource="https://w3id.org/sulo/isFeatureOf"/>
+              <owl:someValuesFrom rdf:resource="Person"/>
+            </owl:Restriction>
+          </owl:intersectionOf>
+        </owl:Class>
+      </owl:someValuesFrom>
+    </owl:Restriction>
+  </rdfs:subClassOf>
+  <rdfs:subClassOf>
+    <owl:Restriction>
+      <owl:onProperty rdf:resource="https://w3id.org/sulo/hasParticipant"/>
+      <owl:someValuesFrom>
+        <owl:Class>
+          <owl:intersectionOf rdf:parseType="Collection">
+            <rdf:Description rdf:about="https://w3id.org/ontostart/pro/EmergingRole"/>
+            <owl:Restriction>
+              <owl:onProperty rdf:resource="https://w3id.org/sulo/isFeatureOf"/>
+              <owl:someValuesFrom rdf:resource="Tissue"/>
+            </owl:Restriction>
+          </owl:intersectionOf>
+        </owl:Class>
+      </owl:someValuesFrom>
+    </owl:Restriction>
+  </rdfs:subClassOf>
+  <rdfs:subClassOf>
+    <owl:Restriction>
+      <owl:onProperty rdf:resource="https://w3id.org/sulo/hasParticipant"/>
+      <owl:someValuesFrom>
+        <owl:Class>
+          <owl:intersectionOf rdf:parseType="Collection">
+            <rdf:Description rdf:about="https://w3id.org/ontostart/pro/InstrumentRole"/>
+            <owl:Restriction>
+              <owl:onProperty rdf:resource="https://w3id.org/sulo/isFeatureOf"/>
+              <owl:someValuesFrom rdf:resource="BiopsyNeedle"/>
+            </owl:Restriction>
+          </owl:intersectionOf>
+        </owl:Class>
+      </owl:someValuesFrom>
+    </owl:Restriction>
+  </rdfs:subClassOf>
+  <rdfs:subClassOf>
+    <owl:Restriction>
+      <owl:onProperty rdf:resource="https://w3id.org/sulo/hasParticipant"/>
+      <owl:someValuesFrom>
+        <owl:Class>
+          <owl:intersectionOf rdf:parseType="Collection">
+            <rdf:Description rdf:about="https://w3id.org/ontostart/pro/LocationRole"/>
+            <owl:Restriction>
+              <owl:onProperty rdf:resource="https://w3id.org/sulo/isFeatureOf"/>
+              <owl:someValuesFrom rdf:resource="Breast"/>
+            </owl:Restriction>
+          </owl:intersectionOf>
+        </owl:Class>
+      </owl:someValuesFrom>
+    </owl:Restriction>
+  </rdfs:subClassOf>
+  <rdfs:subClassOf>
+    <owl:Restriction>
+      <owl:onProperty rdf:resource="https://w3id.org/sulo/hasParticipant"/>
+      <owl:someValuesFrom>
+        <owl:Class>
+          <owl:intersectionOf rdf:parseType="Collection">
+            <rdf:Description rdf:about="SubjectOfCareRole"/>
+            <owl:Restriction>
+              <owl:onProperty rdf:resource="https://w3id.org/sulo/isFeatureOf"/>
+              <owl:someValuesFrom rdf:resource="Person"/>
+            </owl:Restriction>
+          </owl:intersectionOf>
+        </owl:Class>
+      </owl:someValuesFrom>
+    </owl:Restriction>
+  </rdfs:subClassOf>
+  <rdfs:label xml:lang="en">core needle biopsy of breast</rdfs:label>
+</owl:Class>
+
+<owl:Class rdf:about="Person">
+  <rdfs:subClassOf rdf:resource="https://w3id.org/sulo/SpatialObject"/>
+  <rdfs:label xml:lang="en">person</rdfs:label>
+</owl:Class>
+
+<owl:Class rdf:about="RadiologistRole">
+  <rdfs:subClassOf rdf:resource="PhysicianRole"/>
+  <rdfs:label xml:lang="en">radiologist role</rdfs:label>
+</owl:Class>
+
+<owl:Class rdf:about="Tissue">
+  <rdfs:subClassOf rdf:resource="https://w3id.org/sulo/SpatialObject"/>
+  <rdfs:label xml:lang="en">tissue</rdfs:label>
+</owl:Class>
+
+<owl:Class rdf:about="BiopsyNeedle">
+  <rdfs:subClassOf rdf:resource="https://w3id.org/sulo/SpatialObject"/>
+  <rdfs:label xml:lang="en">biopsy needle</rdfs:label>
+</owl:Class>
+
+<owl:Class rdf:about="Breast">
+  <rdfs:subClassOf rdf:resource="https://w3id.org/sulo/SpatialObject"/>
+  <owl:equivalentClass>
+    <owl:Class>
+      <owl:intersectionOf rdf:parseType="Collection">
+        <rdf:Description rdf:about="https://w3id.org/sulo/SpatialObject"/>
+        <owl:Restriction>
+          <owl:onProperty rdf:resource="https://w3id.org/sulo/hasDirectPart"/>
+          <owl:someValuesFrom rdf:resource="Nipple"/>
+        </owl:Restriction>
+        <owl:Restriction>
+          <owl:onProperty rdf:resource="https://w3id.org/sulo/hasDirectPart"/>
+          <owl:someValuesFrom rdf:resource="MammaryGland"/>
+        </owl:Restriction>
+        <owl:Restriction>
+          <owl:onProperty rdf:resource="https://w3id.org/sulo/hasDirectPart"/>
+          <owl:someValuesFrom rdf:resource="AdiposeTissue"/>
+        </owl:Restriction>
+        <owl:Restriction>
+          <owl:onProperty rdf:resource="https://w3id.org/sulo/hasDirectPart"/>
+          <owl:someValuesFrom rdf:resource="SkinOfBreast"/>
+        </owl:Restriction>
+      </owl:intersectionOf>
+    </owl:Class>
+  </owl:equivalentClass>
+  <rdfs:subClassOf>
+    <owl:Restriction>
+      <owl:onProperty rdf:resource="https://w3id.org/sulo/hasDirectPart"/>
+      <owl:onClass rdf:resource="Nipple"/>
+      <owl:qualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:qualifiedCardinality>
+    </owl:Restriction>
+  </rdfs:subClassOf>
+  <rdfs:subClassOf>
+    <owl:Restriction>
+      <owl:onProperty rdf:resource="https://w3id.org/sulo/hasDirectPart"/>
+      <owl:allValuesFrom>
+        <owl:Class>
+          <owl:unionOf rdf:parseType="Collection">
+            <rdf:Description rdf:about="Nipple"/>
+            <rdf:Description rdf:about="MammaryGland"/>
+            <rdf:Description rdf:about="AdiposeTissue"/>
+            <rdf:Description rdf:about="SkinOfBreast"/>
+          </owl:unionOf>
+        </owl:Class>
+      </owl:allValuesFrom>
+    </owl:Restriction>
+  </rdfs:subClassOf>
+  <rdfs:label xml:lang="en">breast</rdfs:label>
+</owl:Class>
+
+<owl:Class rdf:about="SubjectOfCareRole">
+  <rdfs:subClassOf rdf:resource="https://w3id.org/ontostart/pro/PatientRole"/>
+  <rdfs:label xml:lang="en">subject-of-care role</rdfs:label>
+</owl:Class>
+
+<owl:Class rdf:about="PhysicianRole">
+  <rdfs:subClassOf rdf:resource="CareProviderRole"/>
+  <rdfs:label xml:lang="en">physician role</rdfs:label>
+</owl:Class>
+
+<owl:Class rdf:about="Nipple">
+  <rdfs:subClassOf rdf:resource="https://w3id.org/sulo/SpatialObject"/>
+  <rdfs:label xml:lang="en">nipple</rdfs:label>
+</owl:Class>
+
+<owl:Class rdf:about="MammaryGland">
+  <rdfs:subClassOf rdf:resource="https://w3id.org/sulo/SpatialObject"/>
+  <rdfs:label xml:lang="en">mammary gland</rdfs:label>
+</owl:Class>
+
+<owl:Class rdf:about="AdiposeTissue">
+  <rdfs:subClassOf rdf:resource="https://w3id.org/sulo/SpatialObject"/>
+  <rdfs:label xml:lang="en">adipose tissue</rdfs:label>
+</owl:Class>
+
+<owl:Class rdf:about="SkinOfBreast">
+  <rdfs:subClassOf rdf:resource="https://w3id.org/sulo/SpatialObject"/>
+  <rdfs:label xml:lang="en">skin of breast</rdfs:label>
+</owl:Class>
+
+<owl:Class rdf:about="CareProviderRole">
+  <rdfs:subClassOf rdf:resource="https://w3id.org/ontostart/pro/AgentRole"/>
+  <rdfs:label xml:lang="en">care-provider role</rdfs:label>
+</owl:Class>
+
+<owl:Class rdf:about="SCT_HistopathologyTest">
+  <rdfs:subClassOf rdf:resource="https://w3id.org/sulo/Process"/>
+  <rdfs:label xml:lang="en">histopathology test</rdfs:label>
+</owl:Class>
+
+<owl:Class rdf:about="SCT_NeoadjuvantAntineoplasticChemotherapy">
+  <rdfs:subClassOf rdf:resource="https://w3id.org/sulo/Process"/>
+  <rdfs:label xml:lang="en">neoadjuvant antineoplastic chemotherapy</rdfs:label>
+</owl:Class>
+
+<owl:Class rdf:about="SCT_LumpectomyOfLeftBreast">
+  <rdfs:subClassOf rdf:resource="https://w3id.org/sulo/Process"/>
+  <rdfs:label xml:lang="en">lumpectomy of left breast</rdfs:label>
+</owl:Class>
+
+<owl:Class rdf:about="SCT_FollowUpVisit">
+  <rdfs:subClassOf rdf:resource="https://w3id.org/sulo/Process"/>
+  <rdfs:subClassOf rdf:resource="https://w3id.org/ontostart/pro/DevelopmentalProcess"/>
+  <rdfs:subClassOf>
+    <owl:Restriction>
+      <owl:onProperty rdf:resource="https://w3id.org/sulo/hasParticipant"/>
+      <owl:someValuesFrom>
+        <owl:Class>
+          <owl:intersectionOf rdf:parseType="Collection">
+            <rdf:Description rdf:about="GynecologistRole"/>
+            <owl:Restriction>
+              <owl:onProperty rdf:resource="https://w3id.org/sulo/isFeatureOf"/>
+              <owl:someValuesFrom rdf:resource="Person"/>
+            </owl:Restriction>
+          </owl:intersectionOf>
+        </owl:Class>
+      </owl:someValuesFrom>
+    </owl:Restriction>
+  </rdfs:subClassOf>
+  <rdfs:subClassOf>
+    <owl:Restriction>
+      <owl:onProperty rdf:resource="https://w3id.org/sulo/hasParticipant"/>
+      <owl:someValuesFrom>
+        <owl:Class>
+          <owl:intersectionOf rdf:parseType="Collection">
+            <rdf:Description rdf:about="SubjectOfCareRole"/>
+            <owl:Restriction>
+              <owl:onProperty rdf:resource="https://w3id.org/sulo/isFeatureOf"/>
+              <owl:someValuesFrom rdf:resource="Person"/>
+            </owl:Restriction>
+          </owl:intersectionOf>
+        </owl:Class>
+      </owl:someValuesFrom>
+    </owl:Restriction>
+  </rdfs:subClassOf>
+  <rdfs:label xml:lang="en">follow-up visit</rdfs:label>
+</owl:Class>
+
+<owl:Class rdf:about="GynecologistRole">
+  <rdfs:subClassOf rdf:resource="PhysicianRole"/>
+  <rdfs:label xml:lang="en">gynecologist role</rdfs:label>
+</owl:Class>
+
+<owl:Class rdf:about="SpecimenRole">
+  <rdfs:subClassOf rdf:resource="https://w3id.org/ontostart/pro/PatientRole"/>
+  <rdfs:label xml:lang="en">specimen role</rdfs:label>
+</owl:Class>
+
+<owl:Class rdf:about="SpecimenProducingProcedure">
+  <rdfs:subClassOf rdf:resource="https://w3id.org/sulo/Process"/>
+  <owl:equivalentClass>
+    <owl:Class>
+      <owl:intersectionOf rdf:parseType="Collection">
+        <rdf:Description rdf:about="https://w3id.org/ontostart/pro/TransformationProcess"/>
+        <owl:Restriction>
+          <owl:onProperty rdf:resource="https://w3id.org/sulo/hasParticipant"/>
+          <owl:someValuesFrom>
+            <owl:Class>
+              <owl:intersectionOf rdf:parseType="Collection">
+                <rdf:Description rdf:about="https://w3id.org/ontostart/pro/EmergingRole"/>
+                <owl:Restriction>
+                  <owl:onProperty rdf:resource="https://w3id.org/sulo/isFeatureOf"/>
+                  <owl:someValuesFrom>
+                    <owl:Class>
+                      <owl:intersectionOf rdf:parseType="Collection">
+                        <rdf:Description rdf:about="Tissue"/>
+                        <owl:Restriction>
+                          <owl:onProperty rdf:resource="https://w3id.org/sulo/hasFeature"/>
+                          <owl:someValuesFrom rdf:resource="SpecimenRole"/>
+                        </owl:Restriction>
+                      </owl:intersectionOf>
+                    </owl:Class>
+                  </owl:someValuesFrom>
+                </owl:Restriction>
+              </owl:intersectionOf>
+            </owl:Class>
+          </owl:someValuesFrom>
+        </owl:Restriction>
+      </owl:intersectionOf>
+    </owl:Class>
+  </owl:equivalentClass>
+  <rdfs:label xml:lang="en">specimen-producing procedure</rdfs:label>
+</owl:Class>
+
+<owl:Class rdf:about="SystolicBloodPressure">
+  <rdfs:subClassOf rdf:resource="https://w3id.org/sulo/Quality"/>
+  <rdfs:label xml:lang="en">systolic blood pressure</rdfs:label>
+</owl:Class>
+
+<owl:Class rdf:about="MmHgUnit">
+  <rdfs:subClassOf rdf:resource="https://w3id.org/sulo/Unit"/>
+  <rdfs:label xml:lang="en">mmHg</rdfs:label>
+</owl:Class>
+
+<owl:Class rdf:about="BPMeasurement">
+  <rdfs:subClassOf rdf:resource="https://w3id.org/sulo/Quantity"/>
+  <rdfs:subClassOf>
+    <owl:Restriction>
+      <owl:onProperty rdf:resource="https://w3id.org/sulo/refersTo"/>
+      <owl:someValuesFrom rdf:resource="SystolicBloodPressure"/>
+    </owl:Restriction>
+  </rdfs:subClassOf>
+  <rdfs:subClassOf>
+    <owl:Restriction>
+      <owl:onProperty rdf:resource="https://w3id.org/sulo/hasPart"/>
+      <owl:someValuesFrom rdf:resource="MmHgUnit"/>
+    </owl:Restriction>
+  </rdfs:subClassOf>
+  <rdfs:subClassOf>
+    <owl:Restriction>
+      <owl:onProperty rdf:resource="https://w3id.org/sulo/hasValue"/>
+      <owl:someValuesFrom rdf:resource="http://www.w3.org/2001/XMLSchema#integer"/>
+    </owl:Restriction>
+  </rdfs:subClassOf>
+  <rdfs:label xml:lang="en">systolic blood pressure measurement</rdfs:label>
+</owl:Class>
+
+<owl:Class rdf:about="HypertensiveReading">
+  <rdfs:subClassOf rdf:resource="BPMeasurement"/>
+  <owl:equivalentClass>
+    <owl:Class>
+      <owl:intersectionOf rdf:parseType="Collection">
+        <rdf:Description rdf:about="BPMeasurement"/>
+        <owl:Restriction>
+          <owl:onProperty rdf:resource="https://w3id.org/sulo/hasValue"/>
+          <owl:someValuesFrom>
+            <rdfs:Datatype>
+              <owl:onDatatype rdf:resource="http://www.w3.org/2001/XMLSchema#integer"/>
+              <owl:withRestrictions>
+                <rdf:Description>
+                  <rdf:first>
+                    <rdf:Description>
+                      <xsd:minInclusive rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">140</xsd:minInclusive>
+                    </rdf:Description>
+                  </rdf:first>
+                  <rdf:rest rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#nil"/>
+                </rdf:Description>
+              </owl:withRestrictions>
+            </rdfs:Datatype>
+          </owl:someValuesFrom>
+        </owl:Restriction>
+      </owl:intersectionOf>
+    </owl:Class>
+  </owl:equivalentClass>
+  <rdfs:label xml:lang="en">hypertensive reading</rdfs:label>
+</owl:Class>
+
+<owl:Class rdf:about="TumourGrade">
+  <rdfs:subClassOf rdf:resource="https://w3id.org/sulo/Quality"/>
+  <rdfs:label xml:lang="en">tumour grade</rdfs:label>
+</owl:Class>
+
+<owl:Class rdf:about="TumourGrade1">
+  <rdfs:subClassOf rdf:resource="TumourGrade"/>
+  <rdfs:label xml:lang="en">grade 1</rdfs:label>
+</owl:Class>
+
+<owl:Class rdf:about="TumourGrade2">
+  <rdfs:subClassOf rdf:resource="TumourGrade"/>
+  <rdfs:label xml:lang="en">grade 2</rdfs:label>
+</owl:Class>
+
+<owl:Class rdf:about="TumourGrade3">
+  <rdfs:subClassOf rdf:resource="TumourGrade"/>
+  <rdfs:label xml:lang="en">grade 3</rdfs:label>
+</owl:Class>
+
+<owl:Class rdf:about="IntermediateOrHighGradeTumour">
+  <rdfs:subClassOf rdf:resource="Tissue"/>
+  <owl:equivalentClass>
+    <owl:Class>
+      <owl:intersectionOf rdf:parseType="Collection">
+        <rdf:Description rdf:about="Tissue"/>
+        <owl:Restriction>
+          <owl:onProperty rdf:resource="https://w3id.org/sulo/hasFeature"/>
+          <owl:someValuesFrom>
+            <owl:Class>
+              <owl:unionOf rdf:parseType="Collection">
+                <rdf:Description rdf:about="TumourGrade2"/>
+                <rdf:Description rdf:about="TumourGrade3"/>
+              </owl:unionOf>
+            </owl:Class>
+          </owl:someValuesFrom>
+        </owl:Restriction>
+      </owl:intersectionOf>
+    </owl:Class>
+  </owl:equivalentClass>
+  <rdfs:label xml:lang="en">intermediate or high grade tumour</rdfs:label>
+</owl:Class>
+
+<owl:Class rdf:about="ERPositive">
+  <rdfs:subClassOf rdf:resource="https://w3id.org/sulo/Quality"/>
+  <owl:disjointWith rdf:resource="ERNegative"/>
+  <rdfs:label xml:lang="en">ER positive</rdfs:label>
+</owl:Class>
+
+<owl:Class rdf:about="ERNegative">
+  <rdfs:subClassOf rdf:resource="https://w3id.org/sulo/Quality"/>
+  <rdfs:label xml:lang="en">ER negative</rdfs:label>
+</owl:Class>
+
+<owl:Class rdf:about="PRPositive">
+  <rdfs:subClassOf rdf:resource="https://w3id.org/sulo/Quality"/>
+  <owl:disjointWith rdf:resource="PRNegative"/>
+  <rdfs:label xml:lang="en">PR positive</rdfs:label>
+</owl:Class>
+
+<owl:Class rdf:about="PRNegative">
+  <rdfs:subClassOf rdf:resource="https://w3id.org/sulo/Quality"/>
+  <rdfs:label xml:lang="en">PR negative</rdfs:label>
+</owl:Class>
+
+<owl:Class rdf:about="HER2Positive">
+  <rdfs:subClassOf rdf:resource="https://w3id.org/sulo/Quality"/>
+  <owl:disjointWith rdf:resource="HER2Negative"/>
+  <rdfs:label xml:lang="en">HER2 positive</rdfs:label>
+</owl:Class>
+
+<owl:Class rdf:about="HER2Negative">
+  <rdfs:subClassOf rdf:resource="https://w3id.org/sulo/Quality"/>
+  <rdfs:label xml:lang="en">HER2 negative</rdfs:label>
+</owl:Class>
+
+<owl:Class rdf:about="HormoneReceptorPositive">
+  <rdfs:subClassOf rdf:resource="Tissue"/>
+  <owl:equivalentClass>
+    <owl:Class>
+      <owl:intersectionOf rdf:parseType="Collection">
+        <rdf:Description rdf:about="Tissue"/>
+        <owl:Class>
+          <owl:unionOf rdf:parseType="Collection">
+            <owl:Restriction>
+              <owl:onProperty rdf:resource="https://w3id.org/sulo/hasFeature"/>
+              <owl:someValuesFrom rdf:resource="ERPositive"/>
+            </owl:Restriction>
+            <owl:Restriction>
+              <owl:onProperty rdf:resource="https://w3id.org/sulo/hasFeature"/>
+              <owl:someValuesFrom rdf:resource="PRPositive"/>
+            </owl:Restriction>
+          </owl:unionOf>
+        </owl:Class>
+      </owl:intersectionOf>
+    </owl:Class>
+  </owl:equivalentClass>
+  <rdfs:label xml:lang="en">hormone-receptor positive specimen</rdfs:label>
+</owl:Class>
+
+<owl:Class rdf:about="Tumour">
+  <rdfs:subClassOf rdf:resource="https://w3id.org/sulo/SpatialObject"/>
+  <rdfs:label xml:lang="en">tumour</rdfs:label>
+</owl:Class>
+
+<owl:Class rdf:about="LocalisedBreastTumour">
+  <rdfs:subClassOf rdf:resource="Tumour"/>
+  <owl:equivalentClass>
+    <owl:Class>
+      <owl:intersectionOf rdf:parseType="Collection">
+        <rdf:Description rdf:about="Tumour"/>
+        <owl:Restriction>
+          <owl:onProperty rdf:resource="https://w3id.org/sulo/isIn"/>
+          <owl:someValuesFrom rdf:resource="Breast"/>
+        </owl:Restriction>
+      </owl:intersectionOf>
+    </owl:Class>
+  </owl:equivalentClass>
+  <rdfs:label xml:lang="en">localised breast tumour</rdfs:label>
+</owl:Class>
+
+<owl:Class rdf:about="BreastCancer">
+  <rdfs:subClassOf rdf:resource="https://w3id.org/sulo/Process"/>
+  <rdfs:label xml:lang="en">breast cancer</rdfs:label>
+</owl:Class>
+
+<owl:Class rdf:about="InvasiveCarcinomaOfBreast">
+  <rdfs:subClassOf rdf:resource="BreastCancer"/>
+  <rdfs:label xml:lang="en">invasive carcinoma of breast</rdfs:label>
+</owl:Class>
+
+<owl:Class rdf:about="DiagnosisStatement">
+  <rdfs:subClassOf rdf:resource="https://w3id.org/sulo/InformationObject"/>
+  <rdfs:subClassOf>
+    <owl:Restriction>
+      <owl:onProperty rdf:resource="https://w3id.org/sulo/refersTo"/>
+      <owl:someValuesFrom rdf:resource="BreastCancer"/>
+    </owl:Restriction>
+  </rdfs:subClassOf>
+  <rdfs:label xml:lang="en">diagnosis statement</rdfs:label>
+</owl:Class>
+
+<owl:Class rdf:about="DiagnosisStatus">
+  <rdfs:subClassOf rdf:resource="https://w3id.org/sulo/Quality"/>
+  <rdfs:label xml:lang="en">diagnosis status</rdfs:label>
+</owl:Class>
+
+<owl:Class rdf:about="Preliminary">
+  <rdfs:subClassOf rdf:resource="DiagnosisStatus"/>
+  <owl:disjointWith rdf:resource="Confirmed"/>
+  <rdfs:label xml:lang="en">preliminary</rdfs:label>
+</owl:Class>
+
+<owl:Class rdf:about="Confirmed">
+  <rdfs:subClassOf rdf:resource="DiagnosisStatus"/>
+  <rdfs:label xml:lang="en">confirmed</rdfs:label>
+</owl:Class>
+
+<owl:Class rdf:about="ConfirmedDiagnosis">
+  <rdfs:subClassOf rdf:resource="DiagnosisStatement"/>
+  <owl:equivalentClass>
+    <owl:Class>
+      <owl:intersectionOf rdf:parseType="Collection">
+        <rdf:Description rdf:about="DiagnosisStatement"/>
+        <owl:Restriction>
+          <owl:onProperty rdf:resource="https://w3id.org/sulo/hasFeature"/>
+          <owl:hasValue rdf:resource="confirmed_status"/>
+        </owl:Restriction>
+      </owl:intersectionOf>
+    </owl:Class>
+  </owl:equivalentClass>
+  <rdfs:label xml:lang="en">confirmed diagnosis</rdfs:label>
+</owl:Class>
+
+<owl:Class rdf:about="MedicationAdministration">
+  <rdfs:subClassOf rdf:resource="https://w3id.org/sulo/Process"/>
+  <rdfs:label xml:lang="en">medication administration</rdfs:label>
+</owl:Class>
+
+<owl:Class rdf:about="MedicationPrescription">
+  <rdfs:subClassOf rdf:resource="https://w3id.org/sulo/InformationObject"/>
+  <rdfs:subClassOf>
+    <owl:Restriction>
+      <owl:onProperty rdf:resource="https://w3id.org/sulo/refersTo"/>
+      <owl:allValuesFrom rdf:resource="MedicationAdministration"/>
+    </owl:Restriction>
+  </rdfs:subClassOf>
+  <rdfs:label xml:lang="en">medication prescription</rdfs:label>
+</owl:Class>
+
+<Confirmed rdf:about="confirmed_status">
+  <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#NamedIndividual"/>
+</Confirmed>
+
+<SCT_RoutineGynecologicExamination rdf:about="mary_visit_feb18">
+  <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#NamedIndividual"/>
+  <sulo:atTime rdf:resource="mary_visit_feb18_start"/>
+  <sulo:atTime rdf:resource="mary_visit_feb18_end"/>
+  <sulo:hasDirectPart rdf:resource="mary_phys_exam_feb18"/>
+  <sulo:hasDirectPart rdf:resource="mary_doc_feb18"/>
+  <sulo:precedes rdf:resource="mary_ultrasound_feb20"/>
+  <rdfs:label xml:lang="en">Mary's routine gynecologic visit, 2026-02-18</rdfs:label>
+</SCT_RoutineGynecologicExamination>
+
+<sulo:StartTime rdf:about="mary_visit_feb18_start">
+  <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#NamedIndividual"/>
+  <sulo:hasValue rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime">2026-02-18T09:00:00.000</sulo:hasValue>
+</sulo:StartTime>
+
+<sulo:EndTime rdf:about="mary_visit_feb18_end">
+  <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#NamedIndividual"/>
+  <sulo:hasValue rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime">2026-02-18T10:30:00.000</sulo:hasValue>
+</sulo:EndTime>
+
+<SCT_PhysicalExamination rdf:about="mary_phys_exam_feb18">
+  <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#NamedIndividual"/>
+  <sulo:hasDirectPart rdf:resource="mary_breast_exam_feb18"/>
+</SCT_PhysicalExamination>
+
+<SCT_ClinicalDocumentation rdf:about="mary_doc_feb18">
+  <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#NamedIndividual"/>
+</SCT_ClinicalDocumentation>
+
+<SCT_UltrasonographyOfLeftBreast rdf:about="mary_ultrasound_feb20">
+  <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#NamedIndividual"/>
+  <sulo:atTime rdf:resource="t_2026_02_20"/>
+  <sulo:precedes rdf:resource="mary_diag_feb22_preliminary"/>
+</SCT_UltrasonographyOfLeftBreast>
+
+<SCT_ManualBreastExamination rdf:about="mary_breast_exam_feb18">
+  <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#NamedIndividual"/>
+</SCT_ManualBreastExamination>
+
+<sulo:TimeInstant rdf:about="t_2026_02_20">
+  <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#NamedIndividual"/>
+  <sulo:hasValue rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime">2026-02-20T11:00:00.000</sulo:hasValue>
+</sulo:TimeInstant>
+
+<SCT_DiagnosticAssessment rdf:about="mary_diag_feb22_preliminary">
+  <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#NamedIndividual"/>
+  <sulo:atTime rdf:resource="t_2026_02_22"/>
+  <sulo:precedes rdf:resource="mary_biopsy_feb25"/>
+</SCT_DiagnosticAssessment>
+
+<sulo:TimeInstant rdf:about="t_2026_02_22">
+  <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#NamedIndividual"/>
+  <sulo:hasValue rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime">2026-02-22T14:00:00.000</sulo:hasValue>
+</sulo:TimeInstant>
+
+<SCT_CoreNeedleBiopsyOfBreast rdf:about="mary_biopsy_feb25">
+  <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#NamedIndividual"/>
+  <sulo:atTime rdf:resource="t_2026_02_25"/>
+  <sulo:precedes rdf:resource="mary_histo_mar01"/>
+  <sulo:hasParticipant rdf:resource="specimen_emerging_role_feb25"/>
+  <sulo:hasParticipant rdf:resource="mary_patient_role"/>
+  <sulo:hasParticipant rdf:resource="needle_instrument_role_feb25"/>
+  <sulo:hasParticipant rdf:resource="miller_agent_role"/>
+  <sulo:hasParticipant rdf:resource="breast_location_role_feb25"/>
+</SCT_CoreNeedleBiopsyOfBreast>
+
+<sulo:TimeInstant rdf:about="t_2026_02_25">
+  <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#NamedIndividual"/>
+  <sulo:hasValue rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime">2026-02-25T09:30:00.000</sulo:hasValue>
+</sulo:TimeInstant>
+
+<SCT_HistopathologyTest rdf:about="mary_histo_mar01">
+  <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#NamedIndividual"/>
+  <sulo:atTime rdf:resource="t_2026_03_01_lab"/>
+  <sulo:precedes rdf:resource="mary_diag_mar01_confirmed"/>
+</SCT_HistopathologyTest>
+
+<pro:EmergingRole rdf:about="specimen_emerging_role_feb25">
+  <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#NamedIndividual"/>
+  <sulo:isFeatureOf rdf:resource="mary_tissue_feb25"/>
+</pro:EmergingRole>
+
+<SubjectOfCareRole rdf:about="mary_patient_role">
+  <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#NamedIndividual"/>
+  <sulo:isFeatureOf rdf:resource="mary"/>
+</SubjectOfCareRole>
+
+<pro:InstrumentRole rdf:about="needle_instrument_role_feb25">
+  <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#NamedIndividual"/>
+  <sulo:isFeatureOf rdf:resource="biopsy_needle_feb25"/>
+</pro:InstrumentRole>
+
+<RadiologistRole rdf:about="miller_agent_role">
+  <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#NamedIndividual"/>
+  <sulo:isFeatureOf rdf:resource="dr_miller"/>
+</RadiologistRole>
+
+<pro:LocationRole rdf:about="breast_location_role_feb25">
+  <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#NamedIndividual"/>
+  <sulo:isFeatureOf rdf:resource="mary_left_breast"/>
+</pro:LocationRole>
+
+<sulo:TimeInstant rdf:about="t_2026_03_01_lab">
+  <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#NamedIndividual"/>
+  <sulo:hasValue rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime">2026-03-01T12:00:00.000</sulo:hasValue>
+</sulo:TimeInstant>
+
+<SCT_DiagnosticAssessment rdf:about="mary_diag_mar01_confirmed">
+  <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#NamedIndividual"/>
+  <sulo:atTime rdf:resource="t_2026_03_01"/>
+  <sulo:precedes rdf:resource="mary_chemo_2026"/>
+</SCT_DiagnosticAssessment>
+
+<Person rdf:about="mary">
+  <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#NamedIndividual"/>
+  <owl:sameAs rdf:resource="fhir_patient_12345"/>
+  <rdfs:label xml:lang="en">Mary</rdfs:label>
+</Person>
+
+<BiopsyNeedle rdf:about="biopsy_needle_feb25">
+  <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#NamedIndividual"/>
+</BiopsyNeedle>
+
+<Person rdf:about="dr_miller">
+  <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#NamedIndividual"/>
+  <rdfs:label xml:lang="en">Dr. Miller, radiologist</rdfs:label>
+</Person>
+
+<Breast rdf:about="mary_left_breast">
+  <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#NamedIndividual"/>
+  <sulo:hasDirectPart rdf:resource="mary_left_skin"/>
+  <sulo:hasDirectPart rdf:resource="mary_left_adipose"/>
+  <sulo:hasDirectPart rdf:resource="mary_left_nipple"/>
+  <sulo:hasDirectPart rdf:resource="mary_left_mammary_gland"/>
+</Breast>
+
+<sulo:TimeInstant rdf:about="t_2026_03_01">
+  <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#NamedIndividual"/>
+  <sulo:hasValue rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime">2026-03-01T16:00:00.000</sulo:hasValue>
+</sulo:TimeInstant>
+
+<SCT_NeoadjuvantAntineoplasticChemotherapy rdf:about="mary_chemo_2026">
+  <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#NamedIndividual"/>
+  <sulo:atTime rdf:resource="mary_chemo_start"/>
+  <sulo:atTime rdf:resource="mary_chemo_end"/>
+  <sulo:precedes rdf:resource="mary_lumpectomy_jul01"/>
+  <sulo:hasPart rdf:resource="mary_chemo_admin_3"/>
+  <sulo:hasPart rdf:resource="mary_chemo_admin_1"/>
+  <sulo:hasPart rdf:resource="mary_chemo_admin_2"/>
+  <sulo:hasPart rdf:resource="mary_chemo_admin_4"/>
+</SCT_NeoadjuvantAntineoplasticChemotherapy>
+
+<Person rdf:about="fhir_patient_12345">
+  <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#NamedIndividual"/>
+  <rdfs:label xml:lang="en">FHIR Patient/12345</rdfs:label>
+</Person>
+
+<SkinOfBreast rdf:about="mary_left_skin">
+  <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#NamedIndividual"/>
+</SkinOfBreast>
+
+<AdiposeTissue rdf:about="mary_left_adipose">
+  <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#NamedIndividual"/>
+</AdiposeTissue>
+
+<Nipple rdf:about="mary_left_nipple">
+  <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#NamedIndividual"/>
+</Nipple>
+
+<MammaryGland rdf:about="mary_left_mammary_gland">
+  <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#NamedIndividual"/>
+</MammaryGland>
+
+<sulo:StartTime rdf:about="mary_chemo_start">
+  <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#NamedIndividual"/>
+  <sulo:hasValue rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime">2026-03-10T08:00:00.000</sulo:hasValue>
+</sulo:StartTime>
+
+<sulo:EndTime rdf:about="mary_chemo_end">
+  <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#NamedIndividual"/>
+  <sulo:hasValue rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime">2026-06-15T17:00:00.000</sulo:hasValue>
+</sulo:EndTime>
+
+<SCT_LumpectomyOfLeftBreast rdf:about="mary_lumpectomy_jul01">
+  <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#NamedIndividual"/>
+  <sulo:atTime rdf:resource="t_2026_07_01"/>
+  <sulo:precedes rdf:resource="mary_followup_sep30"/>
+</SCT_LumpectomyOfLeftBreast>
+
+<MedicationAdministration rdf:about="mary_chemo_admin_3">
+  <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#NamedIndividual"/>
+</MedicationAdministration>
+
+<MedicationAdministration rdf:about="mary_chemo_admin_1">
+  <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#NamedIndividual"/>
+</MedicationAdministration>
+
+<MedicationAdministration rdf:about="mary_chemo_admin_2">
+  <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#NamedIndividual"/>
+</MedicationAdministration>
+
+<MedicationAdministration rdf:about="mary_chemo_admin_4">
+  <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#NamedIndividual"/>
+</MedicationAdministration>
+
+<Tissue rdf:about="mary_tissue_feb25">
+  <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#NamedIndividual"/>
+  <sulo:hasFeature rdf:resource="mary_tumour_grade"/>
+  <sulo:hasFeature rdf:resource="mary_er_status"/>
+  <sulo:hasFeature rdf:resource="mary_her2_status"/>
+  <sulo:hasFeature rdf:resource="mary_pr_status"/>
+  <sulo:hasFeature rdf:resource="mary_specimen_role"/>
+</Tissue>
+
+<TumourGrade2 rdf:about="mary_tumour_grade">
+  <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#NamedIndividual"/>
+</TumourGrade2>
+
+<ERPositive rdf:about="mary_er_status">
+  <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#NamedIndividual"/>
+</ERPositive>
+
+<HER2Negative rdf:about="mary_her2_status">
+  <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#NamedIndividual"/>
+</HER2Negative>
+
+<PRPositive rdf:about="mary_pr_status">
+  <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#NamedIndividual"/>
+</PRPositive>
+
+<sulo:TimeInstant rdf:about="t_2026_07_01">
+  <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#NamedIndividual"/>
+  <sulo:hasValue rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime">2026-07-01T08:00:00.000</sulo:hasValue>
+</sulo:TimeInstant>
+
+<SCT_FollowUpVisit rdf:about="mary_followup_sep30">
+  <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#NamedIndividual"/>
+  <sulo:atTime rdf:resource="t_2026_09_30"/>
+  <sulo:hasParticipant rdf:resource="smith_agent_role"/>
+  <sulo:hasParticipant rdf:resource="mary_patient_role"/>
+</SCT_FollowUpVisit>
+
+<sulo:TimeInstant rdf:about="t_2026_09_30">
+  <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#NamedIndividual"/>
+  <sulo:hasValue rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime">2026-09-30T10:00:00.000</sulo:hasValue>
+</sulo:TimeInstant>
+
+<GynecologistRole rdf:about="smith_agent_role">
+  <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#NamedIndividual"/>
+  <sulo:isFeatureOf rdf:resource="dr_smith"/>
+</GynecologistRole>
+
+<Person rdf:about="dr_smith">
+  <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#NamedIndividual"/>
+  <rdfs:label xml:lang="en">Dr. Smith, gynecologist</rdfs:label>
+</Person>
+
+<SpecimenRole rdf:about="mary_specimen_role">
+  <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#NamedIndividual"/>
+</SpecimenRole>
+
+<sulo:SpatialObject rdf:about="mary_right_breast">
+  <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#NamedIndividual"/>
+  <sulo:hasDirectPart rdf:resource="mary_right_mammary_gland"/>
+  <sulo:hasDirectPart rdf:resource="mary_right_skin"/>
+  <sulo:hasDirectPart rdf:resource="mary_right_nipple"/>
+  <sulo:hasDirectPart rdf:resource="mary_right_adipose"/>
+</sulo:SpatialObject>
+
+<MammaryGland rdf:about="mary_right_mammary_gland">
+  <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#NamedIndividual"/>
+</MammaryGland>
+
+<SkinOfBreast rdf:about="mary_right_skin">
+  <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#NamedIndividual"/>
+</SkinOfBreast>
+
+<Nipple rdf:about="mary_right_nipple">
+  <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#NamedIndividual"/>
+</Nipple>
+
+<AdiposeTissue rdf:about="mary_right_adipose">
+  <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#NamedIndividual"/>
+</AdiposeTissue>
+
+<SystolicBloodPressure rdf:about="mary_systolic_bp">
+  <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#NamedIndividual"/>
+  <sulo:isFeatureOf rdf:resource="mary"/>
+</SystolicBloodPressure>
+
+<MmHgUnit rdf:about="mmhg">
+  <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#NamedIndividual"/>
+</MmHgUnit>
+
+<BPMeasurement rdf:about="mary_bp_reading1_feb18">
+  <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#NamedIndividual"/>
+  <sulo:refersTo rdf:resource="mary_systolic_bp"/>
+  <sulo:hasPart rdf:resource="mmhg"/>
+  <sulo:hasValue rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">118</sulo:hasValue>
+</BPMeasurement>
+
+<BPMeasurement rdf:about="mary_bp_reading2_feb18">
+  <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#NamedIndividual"/>
+  <sulo:refersTo rdf:resource="mary_systolic_bp"/>
+  <sulo:hasPart rdf:resource="mmhg"/>
+  <sulo:hasValue rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">142</sulo:hasValue>
+</BPMeasurement>
+
+<BPMeasurement rdf:about="mary_bp_reading3_feb18">
+  <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#NamedIndividual"/>
+  <sulo:refersTo rdf:resource="mary_systolic_bp"/>
+  <sulo:hasPart rdf:resource="mmhg"/>
+  <sulo:hasValue rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">165</sulo:hasValue>
+</BPMeasurement>
+
+<Tumour rdf:about="mary_tumour_left_breast">
+  <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#NamedIndividual"/>
+  <sulo:isIn rdf:resource="mary_left_breast"/>
+</Tumour>
+
+<Preliminary rdf:about="preliminary_status">
+  <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#NamedIndividual"/>
+</Preliminary>
+
+<InvasiveCarcinomaOfBreast rdf:about="mary_breast_cancer">
+  <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#NamedIndividual"/>
+</InvasiveCarcinomaOfBreast>
+
+<DiagnosisStatement rdf:about="mary_dx_statement_feb22">
+  <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#NamedIndividual"/>
+  <sulo:refersTo rdf:resource="mary_breast_cancer"/>
+  <sulo:hasFeature rdf:resource="preliminary_status"/>
+</DiagnosisStatement>
+
+<DiagnosisStatement rdf:about="mary_dx_statement_mar01">
+  <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#NamedIndividual"/>
+  <sulo:refersTo rdf:resource="mary_breast_cancer"/>
+  <sulo:hasFeature rdf:resource="confirmed_status"/>
+</DiagnosisStatement>
+
+<MedicationPrescription rdf:about="mary_chemo_prescription">
+  <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#NamedIndividual"/>
+  <sulo:refersTo rdf:resource="mary_chemo_admin_3"/>
+  <sulo:refersTo rdf:resource="mary_chemo_admin_1"/>
+  <sulo:refersTo rdf:resource="mary_chemo_admin_2"/>
+  <sulo:refersTo rdf:resource="mary_chemo_admin_4"/>
+</MedicationPrescription>
+
+<owl:AllDisjointClasses>
+  <owl:members rdf:parseType="Collection">
+    <rdf:Description rdf:about="TumourGrade1"/>
+    <rdf:Description rdf:about="TumourGrade2"/>
+    <rdf:Description rdf:about="TumourGrade3"/>
+  </owl:members>
+</owl:AllDisjointClasses>
+
+<owl:AllDisjointClasses>
+  <owl:members rdf:parseType="Collection">
+    <rdf:Description rdf:about="Nipple"/>
+    <rdf:Description rdf:about="MammaryGland"/>
+    <rdf:Description rdf:about="AdiposeTissue"/>
+    <rdf:Description rdf:about="SkinOfBreast"/>
+  </owl:members>
+</owl:AllDisjointClasses>
+
+<owl:AllDifferent>
+  <owl:distinctMembers rdf:parseType="Collection">
+    <rdf:Description rdf:about="mary_chemo_admin_1"/>
+    <rdf:Description rdf:about="mary_chemo_admin_2"/>
+    <rdf:Description rdf:about="mary_chemo_admin_3"/>
+    <rdf:Description rdf:about="mary_chemo_admin_4"/>
+  </owl:distinctMembers>
+</owl:AllDifferent>
+
+
+</rdf:RDF>

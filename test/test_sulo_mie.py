@@ -67,8 +67,11 @@ if _RUSTDL_VER < RUSTDL_MIN:
         "Upgrade with:  pip install -U rustdl"
         % (".".join(map(str, RUSTDL_MIN)), _RUSTDL_VER_STR))
 
-DIST    = os.path.abspath(os.path.join(ROOT, '..', 'sulo-tutorial', 'dist'))
-MIE05   = os.path.join(DIST, 'mie-05.owl')
+# Self-contained committed fixture: mie-05.owl plus its sulo.owl / pro.owl
+# imports live in this test directory, so notebook/build runs that regenerate
+# sulo-tutorial/dist/ can't mutate or invalidate it.
+FIXTURE_DIR = HERE
+MIE05       = os.path.join(FIXTURE_DIR, 'mie-05.owl')
 
 MIE_IRI  = 'https://w3id.org/ontostart/mie/'
 SULO_IRI = 'https://w3id.org/sulo/'
@@ -90,8 +93,8 @@ def _new_world():
     w.set_backend(filename=path)
     return w
 
-if DIST not in owlready3.onto_path:
-    owlready3.onto_path.append(DIST)
+if FIXTURE_DIR not in owlready3.onto_path:
+    owlready3.onto_path.append(FIXTURE_DIR)
 
 _W    = _new_world()
 _ONTO = _W.get_ontology(f'file://{MIE05}').load()

@@ -23,10 +23,16 @@ import owlready3
 from owlready3.base import *
 
 owlready3_optimized = None
+# NOTE: the compiled Cython parser (owlready3_optimized) is intentionally NOT
+# auto-loaded as a package submodule. In this lightweight fork the extension is
+# stale relative to the Python parser: its parse_rdfxml mis-handles some real
+# ontologies (e.g. it drops nested anonymous class axioms from mie-05.owl and
+# raises ExpatError on imported ontologies), which silently breaks reasoning.
+# The pure-Python parser is the correct, robust path; keep it the default.
+# (A bare `import owlready3_optimized` still picks it up if someone deliberately
+# builds/installs it on sys.path.)
 try: import owlready3_optimized
-except:
-  print("* Owlready3 * Warning: optimized Cython parser module 'owlready3_optimized' is not available, defaulting to slower Python implementation", file = sys.stderr)
-  pass
+except ImportError: pass
 
 
 INT_DATATYPES   = { "http://www.w3.org/2001/XMLSchema#integer", "http://www.w3.org/2001/XMLSchema#byte", "http://www.w3.org/2001/XMLSchema#short", "http://www.w3.org/2001/XMLSchema#int", "http://www.w3.org/2001/XMLSchema#long", "http://www.w3.org/2001/XMLSchema#unsignedByte", "http://www.w3.org/2001/XMLSchema#unsignedShort", "http://www.w3.org/2001/XMLSchema#unsignedInt", "http://www.w3.org/2001/XMLSchema#unsignedLong", "http://www.w3.org/2001/XMLSchema#negativeInteger", "http://www.w3.org/2001/XMLSchema#nonNegativeInteger", "http://www.w3.org/2001/XMLSchema#positiveInteger" }
