@@ -264,6 +264,12 @@ def sync_reasoner_rustdl(x = None, infer_property_values = False, infer_data_pro
   if inferred_obj_relations:  _apply_inferred_obj_relations (world, ontology, debug, inferred_obj_relations)
   if inferred_data_relations: _apply_inferred_data_relations(world, ontology, debug, inferred_data_relations)
 
+  # Record the property assertions this run inferred, for get_inferred_property_assertions().
+  world._inferred_property_assertions = (
+    [(world._get_by_storid(a), prop, world._get_by_storid(b)) for (a, prop, b)    in inferred_obj_relations] +
+    [(world._get_by_storid(a), prop, from_literal(v, d))      for (a, prop, v, d) in inferred_data_relations]
+  )
+
   if debug: print("* Owlready * (NB: only changes on entities loaded in Python are shown, other changes are done but not listed)", file = sys.stderr)
 
 
@@ -378,6 +384,23 @@ def get_inferred_class_assertions(x = None):
   return list(getattr(world, "_inferred_class_assertions", []))
 
 
+def get_inferred_property_assertions(x = None):
+  """Return the property assertions INFERRED by the most recent sync_reasoner_rustdl()
+  run, as a list of (subject, property, value) triples.
+
+  Covers object property assertions (value is an individual) and data property
+  assertions (value is a literal). Only populated when reasoning ran with
+  infer_property_values / infer_data_property_values = True; reset on every run and
+  empty otherwise. rustdl materializes property-box entailments (sub-property,
+  inverse, symmetric, ...) — not hasValue / owl:sameAs / SWRL. Pass a World, an
+  Ontology, or nothing (default world)."""
+  if   x is None:               world = owlready3.default_world
+  elif isinstance(x, World):    world = x
+  elif isinstance(x, Ontology): world = x.world
+  else:                         world = _world_of(x)
+  return list(getattr(world, "_inferred_property_assertions", []))
+
+
 # Attach as convenience methods on World and Ontology.
 def _world_explain         (self, sub, sup = None, **kw): return explain        (sub, sup, world = self,       **kw)
 def _world_why_inconsistent(self, **kw):                  return why_inconsistent(           world = self,       **kw)
@@ -389,6 +412,8 @@ World.explain    = _world_explain;  World.why_inconsistent    = _world_why_incon
 Ontology.explain = _onto_explain;   Ontology.why_inconsistent = _onto_why_inconsistent;   Ontology.repairs = _onto_repairs
 World.get_inferred_class_assertions    = lambda self: get_inferred_class_assertions(self)
 Ontology.get_inferred_class_assertions = lambda self: get_inferred_class_assertions(self.world)
+World.get_inferred_property_assertions    = lambda self: get_inferred_property_assertions(self)
+Ontology.get_inferred_property_assertions = lambda self: get_inferred_property_assertions(self.world)
 
 
 def _apply_reasoning_results(world, ontology, debug, new_parents, new_equivs, entity_2_type):

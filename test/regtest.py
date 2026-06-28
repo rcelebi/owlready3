@@ -6831,6 +6831,53 @@ class InferredClassAssertions(BaseTest, unittest.TestCase):
     assert onto.get_inferred_class_assertions() == get_inferred_class_assertions(world)
 
 
+class InferredPropertyAssertions(BaseTest, unittest.TestCase):
+  # get_inferred_property_assertions() — object/data property assertions inferred
+  # by sync_reasoner (sub-property, inverse, sub-data-property; requires the flags).
+  def _build(self):
+    world = self.new_world()
+    onto  = world.get_ontology("http://test.org/infpa.owl")
+    with onto:
+      class Person(Thing): pass
+      class hasChild(ObjectProperty): pass
+      class hasParent(ObjectProperty): inverse_property = hasChild  # inverse
+      class hasFather(hasParent): pass                              # sub-property
+      class dsuper(DataProperty): pass
+      class dsub(dsuper): pass                                      # sub-data-property
+      mary = Person("mary"); john = Person("john")
+      mary.hasFather = [john]
+      john.dsub = [42]
+    return world, onto
+
+  def test_empty_before_reasoning(self):
+    world, onto = self._build()
+    assert world.get_inferred_property_assertions() == []
+
+  def test_inferred_after_reasoning(self):
+    world, onto = self._build()
+    with onto:
+      sync_reasoner_rustdl(world, infer_property_values = True,
+                           infer_data_property_values = True, debug = 0)
+    got = {(s.name, p.name, getattr(o, "name", o))
+           for s, p, o in onto.get_inferred_property_assertions()}
+    assert ("john", "hasChild",  "mary") in got    # inverse of hasFather→hasParent≡hasChild⁻
+    assert ("mary", "hasParent", "john") in got    # hasFather ⊑ hasParent
+    assert ("john", "dsuper",    42)     in got     # dsub ⊑ dsuper
+    assert ("mary", "hasFather", "john") not in got # asserted, not reported as inferred
+
+  def test_empty_without_flags(self):
+    world, onto = self._build()
+    with onto:
+      sync_reasoner_rustdl(world, debug = 0)            # no infer_property_values
+    assert onto.get_inferred_property_assertions() == []
+
+  def test_method_matches_function(self):
+    world, onto = self._build()
+    with onto:
+      sync_reasoner_rustdl(world, infer_property_values = True, debug = 0)
+    assert onto.get_inferred_property_assertions() == get_inferred_property_assertions(world)
+
+
 # Add test for Pellet
 
 for Class in [Test, Paper]:

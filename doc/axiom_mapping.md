@@ -144,6 +144,16 @@ onto.get_inferred_class_assertions()   # -> [(individual, class), ...] most-spec
 It returns `(individual, class)` entity pairs, is reset on each reasoning run, and is
 empty before the first run (or if nothing new was inferred).
 
+Likewise, `get_inferred_property_assertions()` returns the inferred object/data
+property assertions as `(subject, property, value)` triples (value is an individual
+for object properties, a literal for data properties). It requires the materialization
+flags and only covers property-box entailments (sub-property, inverse, symmetric, …):
+
+```python
+sync_reasoner_rustdl(onto, infer_property_values = True, infer_data_property_values = True)
+onto.get_inferred_property_assertions()  # -> [(subj, prop, value), ...] inferred only
+```
+
 ## Explaining entailments (justifications & repairs)
 
 owlapy exposes axiom justifications (`SyncReasoner.create_axiom_justifications`).
