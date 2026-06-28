@@ -363,6 +363,21 @@ def repairs(sub, sup = None, world = None, max = 10, keep_tmp_file = False):
   finally:
     if not keep_tmp_file: os.unlink(tmp)
 
+def get_inferred_class_assertions(x = None):
+  """Return the class assertions INFERRED by the most recent sync_reasoner_rustdl()
+  run, as a list of (individual, class) pairs.
+
+  These are the rdf:type triples reasoning newly added (the entailed types that were
+  not already asserted) — e.g. an individual classified into a defined class. The
+  list is reset on every reasoning run and is empty before the first one (or if
+  nothing new was inferred). Pass a World, an Ontology, or nothing (default world)."""
+  if   x is None:               world = owlready3.default_world
+  elif isinstance(x, World):    world = x
+  elif isinstance(x, Ontology): world = x.world
+  else:                         world = _world_of(x)
+  return list(getattr(world, "_inferred_class_assertions", []))
+
+
 # Attach as convenience methods on World and Ontology.
 def _world_explain         (self, sub, sup = None, **kw): return explain        (sub, sup, world = self,       **kw)
 def _world_why_inconsistent(self, **kw):                  return why_inconsistent(           world = self,       **kw)
@@ -372,17 +387,22 @@ def _onto_why_inconsistent (self, **kw):                  return why_inconsisten
 def _onto_repairs          (self, sub, sup = None, **kw): return repairs        (sub, sup, world = self.world, **kw)
 World.explain    = _world_explain;  World.why_inconsistent    = _world_why_inconsistent;  World.repairs    = _world_repairs
 Ontology.explain = _onto_explain;   Ontology.why_inconsistent = _onto_why_inconsistent;   Ontology.repairs = _onto_repairs
+World.get_inferred_class_assertions    = lambda self: get_inferred_class_assertions(self)
+Ontology.get_inferred_class_assertions = lambda self: get_inferred_class_assertions(self.world)
 
 
 def _apply_reasoning_results(world, ontology, debug, new_parents, new_equivs, entity_2_type):
   new_parents_loaded = defaultdict(list)
   new_equivs_loaded  = defaultdict(list)
+  inferred_type_pairs = []   # (individual_storid, class_storid) genuinely-new rdf:type triples
 
   for child_storid, parent_storids in new_parents.items():
     for parent_storid in parent_storids:
       owl_relation = _TYPE_2_IS_A[entity_2_type[child_storid]]
       if not ontology.world._has_obj_triple_spo(child_storid, owl_relation, parent_storid):
         ontology._add_obj_triple_spo(child_storid, owl_relation, parent_storid)
+        if entity_2_type[child_storid] == "individual":   # a newly-inferred class assertion
+          inferred_type_pairs.append((child_storid, parent_storid))
 
     child = world._entities.get(child_storid)
     if not child is None:
@@ -445,6 +465,11 @@ def _apply_reasoning_results(world, ontology, debug, new_parents, new_equivs, en
           for added   in new - old:
             if not added in new_is_a: new_is_a.append(added)
           child_eq.is_a.reinit(new_is_a)
+
+  # Record the class assertions this run inferred, for get_inferred_class_assertions().
+  world._inferred_class_assertions = [
+    (world._get_by_storid(ind), world._get_by_storid(cls)) for (ind, cls) in inferred_type_pairs
+  ]
 
 
 def _apply_inferred_obj_relations(world, ontology, debug, relations):

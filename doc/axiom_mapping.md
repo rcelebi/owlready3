@@ -130,6 +130,20 @@ In the object-graph idiom, the equivalent is `sync_reasoner_rustdl(onto)` follow
 by the `INDIRECT_*` accessors above (e.g. `ind.INDIRECT_is_a`), which apply the
 inferences to the live Python objects.
 
+To get just the **class assertions that the last reasoning run inferred** (the new
+`rdf:type` triples, excluding the asserted ones), use `get_inferred_class_assertions()`
+(module function, also a method on `World`/`Ontology`):
+
+```python
+from owlready3 import get_inferred_class_assertions, sync_reasoner_rustdl
+
+sync_reasoner_rustdl(onto)
+onto.get_inferred_class_assertions()   # -> [(individual, class), ...] most-specific, inferred only
+```
+
+It returns `(individual, class)` entity pairs, is reset on each reasoning run, and is
+empty before the first run (or if nothing new was inferred).
+
 ## Explaining entailments (justifications & repairs)
 
 owlapy exposes axiom justifications (`SyncReasoner.create_axiom_justifications`).

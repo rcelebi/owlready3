@@ -6797,6 +6797,40 @@ class Explanation(BaseTest, unittest.TestCase):
     assert "DisjointWith" in " ".join(just)
 
 
+class InferredClassAssertions(BaseTest, unittest.TestCase):
+  # get_inferred_class_assertions() — class assertions newly inferred by sync_reasoner.
+  def _build(self):
+    world = self.new_world()
+    onto  = world.get_ontology("http://test.org/infca.owl")
+    with onto:
+      class Person(Thing): pass
+      class hasChild(ObjectProperty): pass
+      class Parent(Person):
+        equivalent_to = [Person & hasChild.some(Person)]
+      a = Person("a"); b = Person("b")
+      a.hasChild = [b]                     # => a is inferred to be a Parent
+    return world, onto, Person, Parent, a, b
+
+  def test_empty_before_reasoning(self):
+    world, onto, Person, Parent, a, b = self._build()
+    assert world.get_inferred_class_assertions() == []
+
+  def test_inferred_after_reasoning(self):
+    world, onto, Person, Parent, a, b = self._build()
+    with onto:
+      sync_reasoner_rustdl(world, debug = 0)
+    names = {(i.name, c.name) for i, c in onto.get_inferred_class_assertions()}
+    assert ("a", "Parent") in names         # genuinely inferred
+    assert ("a", "Person") not in names     # asserted types are not reported as inferred
+    assert ("b", "Person") not in names
+
+  def test_method_matches_function(self):
+    world, onto, Person, Parent, a, b = self._build()
+    with onto:
+      sync_reasoner_rustdl(world, debug = 0)
+    assert onto.get_inferred_class_assertions() == get_inferred_class_assertions(world)
+
+
 # Add test for Pellet
 
 for Class in [Test, Paper]:
