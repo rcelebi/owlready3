@@ -744,6 +744,84 @@ class TestSparql(unittest.TestCase):
 
 
 # ════════════════════════════════════════════════════════════════════════════
+# 12b. SPARQL 1.1 features – property paths, UNION, aggregation  (NB01/NB06)
+# ════════════════════════════════════════════════════════════════════════════
+
+class TestSparqlAdvanced(unittest.TestCase):
+    """SPARQL features the tutorials rely on (NB01/NB06) but the rest of the
+    suite did not exercise: property paths (+ and inverse), UNION, aggregation."""
+
+    PREFIXES = (
+        "PREFIX mie:  <https://w3id.org/ontostart/mie/>\n"
+        "PREFIX sulo: <https://w3id.org/sulo/>\n"
+        "PREFIX rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n"
+        "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\n"
+    )
+
+    @classmethod
+    def setUpClass(cls):
+        cls.w    = _new_world()
+        cls.onto = cls.w.get_ontology(f'file://{MIE05}').load()
+
+    def _q(self, body):
+        return list(self.w.sparql(self.PREFIXES + body))
+
+    def test_aggregation_count(self):
+        rows = self._q("SELECT (COUNT(?r) AS ?n) WHERE { ?r rdf:type mie:BPMeasurement }")
+        self.assertEqual(rows[0][0], 3)
+
+    def test_union_distinct(self):
+        # BPMeasurement readings (3) and Person individuals (4) are disjoint sets.
+        rows = self._q("SELECT ?x WHERE { { ?x rdf:type mie:BPMeasurement } "
+                       "UNION { ?x rdf:type mie:Person } }")
+        self.assertEqual(len({r[0] for r in rows}), 7)
+
+    def test_property_path_subclassof_plus(self):
+        rows = self._q("SELECT ?c WHERE { ?c rdfs:subClassOf+ sulo:Process }")
+        names = {r[0].name for r in rows if hasattr(r[0], "name")}
+        self.assertIn("SCT_RoutineGynecologicExamination", names)
+        self.assertGreater(len(names), 1)
+
+    def test_property_path_inverse_plus(self):
+        # Inverse property path: events transitively before the biopsy.
+        rows = self._q("SELECT ?x WHERE { mie:mary_biopsy_feb25 (^sulo:precedes)+ ?x }")
+        self.assertGreaterEqual(len({r[0] for r in rows}), 1)
+
+
+# ════════════════════════════════════════════════════════════════════════════
+# 12c. parse/render full-ontology Manchester round-trip  (NB08)
+# ════════════════════════════════════════════════════════════════════════════
+
+class TestManchesterOntologyRoundTrip(unittest.TestCase):
+    """manchester_render_ontology() was imported by the suite but never called;
+    exercise the full ontology .omn render -> parse round-trip."""
+
+    def test_render_parse_roundtrip(self):
+        w    = _new_world()
+        onto = w.get_ontology("https://example.org/mch/")
+        sulo = w.get_ontology(f'{SULO_IRI}sulo.owl').load()
+        onto.imported_ontologies.append(sulo)
+        with onto:
+            class Specimen(owlready3.Thing): pass
+            class DiagnosticSpecimen(Specimen):
+                equivalent_to = [Specimen & parse_manchester_expression(
+                    "sulo:hasFeature some sulo:Quality", onto)]
+
+        omn = manchester_render_ontology(onto)
+        self.assertIsInstance(omn, str)
+        self.assertIn("DiagnosticSpecimen", omn)
+
+        # Parse the rendered .omn back into a fresh world and check it survives.
+        w2    = _new_world()
+        onto2 = w2.get_ontology("https://example.org/mch/")
+        w2.get_ontology(f'{SULO_IRI}sulo.owl').load()
+        parse_manchester_ontology(io.StringIO(omn), onto2)
+        ds = w2["https://example.org/mch/DiagnosticSpecimen"]
+        self.assertIsNotNone(ds)
+        self.assertEqual(len(ds.equivalent_to), 1)
+
+
+# ════════════════════════════════════════════════════════════════════════════
 # 13. Environment – recent rustdl reasoner
 # ════════════════════════════════════════════════════════════════════════════
 

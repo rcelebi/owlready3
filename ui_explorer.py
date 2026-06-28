@@ -128,7 +128,7 @@ st.subheader("Step 1 — Select ontology")
 col_browse, col_path, col_load = st.columns([1, 5, 1])
 
 with col_browse:
-    if st.button("📂 Browse", use_container_width=True):
+    if st.button("📂 Browse", width='stretch'):
         if sys.platform == "darwin":
             result = subprocess.run(
                 ["osascript",
@@ -151,7 +151,7 @@ with col_path:
     st.session_state["selected_path"] = st.session_state.get("path_display", "")
 
 with col_load:
-    do_load = st.button("Load", use_container_width=True, type="primary",
+    do_load = st.button("Load", width='stretch', type="primary",
                         disabled=not st.session_state["selected_path"].strip())
 
 with st.expander("…or build a tiny demo ontology"):
@@ -252,7 +252,7 @@ with tab_info:
               "SubClassOf": ", ".join(p.name for p in c.is_a
                                       if isinstance(p, type) and p is not owl.Thing)}
              for c in _slice],
-            use_container_width=True, hide_index=True)
+            width='stretch', hide_index=True)
 
     st.markdown("**Properties**")
     props      = list(onto.properties())
@@ -273,7 +273,7 @@ with tab_info:
             [{"Individual": i.name, "IRI": i.iri,
               "Types": ", ".join(t.name for t in i.is_a if isinstance(t, type))}
              for i in sorted(inds, key=lambda i: i.name or "")[:_PAGE]],
-            use_container_width=True, hide_index=True)
+            width='stretch', hide_index=True)
 
 
 # ══ Tab: Reasoning (rustdl) ═══════════════════════════════════════════════════
@@ -405,7 +405,7 @@ with tab_query:
 
             rows = _entity_rows(hits)
             if rows:
-                st.dataframe(rows, use_container_width=True, hide_index=True)
+                st.dataframe(rows, width='stretch', hide_index=True)
                 if len(hits) > _DISPLAY_CAP:
                     st.caption(f"Showing first {_DISPLAY_CAP:,} of {len(hits):,}")
             else:
@@ -439,7 +439,7 @@ with tab_query:
                 st.code(q, language="sparql")
             names = sorted({_local(row[0]) for row in omny_run_select(q, world)})
             st.markdown(f"**{len(names)} related term(s):**")
-            st.dataframe([{"Term": n} for n in names], use_container_width=True, hide_index=True)
+            st.dataframe([{"Term": n} for n in names], width='stretch', hide_index=True)
         except Exception as e:
             st.error(f"Error: {e}")
 
@@ -479,7 +479,7 @@ with tab_sparql:
                     cols = [f"col{i}" for i in range(width)]
                     st.dataframe(
                         [{cols[i]: _cell(r[i]) for i in range(len(r))} for r in rows_raw],
-                        use_container_width=True, hide_index=True)
+                        width='stretch', hide_index=True)
                 else:
                     st.info("No results.")
             else:
@@ -491,7 +491,7 @@ with tab_sparql:
                     st.dataframe(
                         [{"s": _cell(s), "p": _cell(p), "o": _cell(o)}
                          for s, p, o in list(result)[:_DISPLAY_CAP]],
-                        use_container_width=True, hide_index=True)
+                        width='stretch', hide_index=True)
                 else:
                     st.markdown(f"**Result** in {elapsed:.3f}s")
                     st.write(result)
